@@ -1,10 +1,12 @@
 package com.vp.game.tools;
 
+import com.badlogic.gdx.utils.Array;
 import com.vp.game.units.Obstacle;
+import com.vp.game.worldelements.WorldElement;
 
 public class WrappableSpatialHashGrid {
 	//first dimension are the chunks
-	private final Obstacle[][][] grid;
+	private final Array<Obstacle>[][][] grid;
 	private final float xBlockSize;
 	private final float yBlockSize;
 	private final float xChunkSize;
@@ -32,12 +34,20 @@ public class WrappableSpatialHashGrid {
 	//Global ID of the current right chunk
 	private int globalRightChunkID;
 	
+	@SuppressWarnings("unchecked")
 	public WrappableSpatialHashGrid(float xDimBlockSize, float yDimBlockSize, float xChunkSize, float yChunkSize, int numChunks, float leftXPosition, float topYPosition) {
 		int chunkXDim = (int)Math.ceil(xChunkSize/xDimBlockSize);
 		int chunkYDim = (int)Math.ceil(yChunkSize/yDimBlockSize);
 		assert(chunkXDim>=2);
 		assert(chunkYDim>=2);
-		grid = new Obstacle[numChunks][chunkXDim][chunkYDim];
+		grid = (Array<Obstacle>[][][]) new Array[numChunks][chunkXDim][chunkYDim];
+		for (int i = 0; i < grid.length; i++) {
+			for (int j = 0; j < grid[i].length; j++) {					
+				for (int k = 0; k < grid[i][j].length; k++) {
+					grid[i][j][k] = new Array<Obstacle>(false,3);
+				}
+			}
+		}
 		this.xBlockSize = xChunkSize/chunkXDim;
 		this.yBlockSize = yChunkSize/chunkYDim;
 		this.xChunkSize = xChunkSize;
@@ -69,34 +79,41 @@ public class WrappableSpatialHashGrid {
 	public boolean put(Obstacle obs, float positionX, float positionY){
 		float xPosToLeftSide = positionX - leftXPosition;
 		int chunkID = (int) (xPosToLeftSide/xChunkSize);
-		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 		int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
+		return put(obs, chunkID, xPosID, yPosID);
+	}
+	
+	public boolean put(Obstacle obs, int chunkID, int xPosID, int yPosID){
+		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		try{
-			if(grid[relativeChunkID][xPosID][yPosID] == null){
-				grid[relativeChunkID][xPosID][yPosID] = obs;
-				obs.globalChunkID = chunkID + globalLeftChunkID;
-				obs.xPositionID = xPosID;
-				obs.yPositionID = yPosID;
-				return true;
-			}else{
-				//collision
-				return false;
-			}	
+			grid[relativeChunkID][xPosID][yPosID].add(obs);
+			obs.globalChunkID = chunkID + globalLeftChunkID;
+			obs.xPositionID = xPosID;
+			obs.yPositionID = yPosID;
+			return true;	
 		}catch(ArrayIndexOutOfBoundsException e){
 			return false;
 		}
 	}
 	
 	public boolean move(Obstacle obs, float positionX, float positionY, int globalChunkID, int xPositionID, int yPositionID){
-			grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID] = null;
-			return put(obs, positionX, positionY);
+			float xPosToLeftSide = positionX - leftXPosition;
+			int chunkID = (int) (xPosToLeftSide/xChunkSize);
+			int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
+			int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
+			if(globalChunkID-globalLeftChunkID!=chunkID||xPosID!=xPositionID||yPosID!=yPositionID){
+				grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID].removeValue(obs, true);	
+				return put(obs, chunkID, xPosID, yPosID);
+			}
+			return true;
 	}
 	
 	public void remove(Obstacle obs){
-		grid[((obs.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][obs.xPositionID][obs.yPositionID] = null;
+		grid[((obs.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][obs.xPositionID][obs.yPositionID].removeValue(obs, true);
 	}
-	public void getNeighboursAndMiddle(Obstacle[] neighbours, float positionX, float positionY){
+	
+	public void getNeighboursAndMiddle(Array<Obstacle>[] neighbours, float positionX, float positionY){
 		float xPosToLeftSide = positionX - leftXPosition;
 		int chunkID = (int) (xPosToLeftSide/xChunkSize);
 		int xPositionID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
@@ -104,36 +121,40 @@ public class WrappableSpatialHashGrid {
 		getNeighbours(neighbours, chunkID, xPositionID, yPositionID);
 		neighbours[8] = get(chunkID, xPositionID, yPositionID);
 	}
-	public void getNeighbours(Obstacle[] neighbours, int chunkID, int xPositionID, int yPositionID){
+	
+	//empty array
+	Array<Obstacle> dummy = new Array<Obstacle>();
+	
+	public void getNeighbours(Array<Obstacle>[] neighbours, int chunkID, int xPositionID, int yPositionID){
 		
 		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		
 		if(xPositionID == 0){
 			if(yPositionID == 0){
-				neighbours[0] = null;
-				neighbours[1] = null;
-				neighbours[2] = null;
+				neighbours[0] = dummy;
+				neighbours[1] = dummy;
+				neighbours[2] = dummy;
 				neighbours[3] = grid[relativeChunkID][1][0];
 				neighbours[4] = grid[relativeChunkID][1][1];
 				neighbours[5] = grid[relativeChunkID][0][1];
 				if(chunkID == 0){
-					neighbours[7] = null;
-					neighbours[6] = null;
+					neighbours[7] = dummy;
+					neighbours[6] = dummy;
 				}else{
 					int relativeLeftNeighbourChunkID = (relativeChunkID==0?maxChunkID:(relativeChunkID-1));
 					neighbours[7] = grid[relativeLeftNeighbourChunkID][maxXInChunk][0];
 					neighbours[6] = grid[relativeLeftNeighbourChunkID][maxXInChunk][1];
 				}
 			}else if(yPositionID == maxYInChunk){
-				neighbours[4] = null;
-				neighbours[5] = null;
-				neighbours[6] = null;
+				neighbours[4] = dummy;
+				neighbours[5] = dummy;
+				neighbours[6] = dummy;
 				neighbours[1] = grid[relativeChunkID][0][maxYInChunk-1];
 				neighbours[2] = grid[relativeChunkID][1][maxYInChunk-1];
 				neighbours[3] = grid[relativeChunkID][1][maxYInChunk];
 				if(chunkID == 0){
-					neighbours[7] = null;
-					neighbours[0] = null;
+					neighbours[7] = dummy;
+					neighbours[0] = dummy;
 				}else{
 					int relativeLeftNeighbourChunkID = (relativeChunkID==0?maxChunkID:(relativeChunkID-1));
 					neighbours[7] = grid[relativeLeftNeighbourChunkID][maxXInChunk][maxYInChunk];
@@ -146,9 +167,9 @@ public class WrappableSpatialHashGrid {
 				neighbours[4] = grid[relativeChunkID][1][yPositionID+1];
 				neighbours[5] = grid[relativeChunkID][0][yPositionID+1];
 				if(chunkID == 0){
-					neighbours[0] = null;
-					neighbours[7] = null;
-					neighbours[6] = null;
+					neighbours[0] = dummy;
+					neighbours[7] = dummy;
+					neighbours[6] = dummy;
 				}else{
 					int relativeLeftNeighbourChunkID = (relativeChunkID==0?maxChunkID:(relativeChunkID-1));
 					neighbours[0] = grid[relativeLeftNeighbourChunkID][maxXInChunk][yPositionID-1];
@@ -158,12 +179,12 @@ public class WrappableSpatialHashGrid {
 			}
 		}else if(xPositionID == maxXInChunk){
 			if(yPositionID == 0){
-				neighbours[0] = null;
-				neighbours[1] = null;
-				neighbours[2] = null;
+				neighbours[0] = dummy;
+				neighbours[1] = dummy;
+				neighbours[2] = dummy;
 				if(chunkID == maxChunkID){
-					neighbours[3] = null;
-					neighbours[4] = null;
+					neighbours[3] = dummy;
+					neighbours[4] = dummy;
 				}else{
 					int relativeRightNeighbourChunkID = (relativeChunkID==maxChunkID?0:(relativeChunkID+1));
 					neighbours[3] = grid[relativeRightNeighbourChunkID][0][0];
@@ -173,12 +194,12 @@ public class WrappableSpatialHashGrid {
 				neighbours[6] = grid[relativeChunkID][maxXInChunk-1][1];
 				neighbours[7] = grid[relativeChunkID][maxXInChunk-1][0];
 			}else if(yPositionID == maxYInChunk){
-				neighbours[4] = null;
-				neighbours[5] = null;
-				neighbours[6] = null;
+				neighbours[4] = dummy;
+				neighbours[5] = dummy;
+				neighbours[6] = dummy;
 				if(chunkID == maxChunkID){
-					neighbours[2] = null;
-					neighbours[3] = null;
+					neighbours[2] = dummy;
+					neighbours[3] = dummy;
 				}else{
 					int relativeRightNeighbourChunkID = (relativeChunkID==maxChunkID?0:(relativeChunkID+1));
 					neighbours[2] = grid[relativeRightNeighbourChunkID][0][maxYInChunk-1];
@@ -194,9 +215,9 @@ public class WrappableSpatialHashGrid {
 				neighbours[6] = grid[relativeChunkID][maxXInChunk-1][yPositionID+1];
 				neighbours[7] = grid[relativeChunkID][maxXInChunk-1][yPositionID];
 				if(chunkID == 0){
-					neighbours[2] = null;
-					neighbours[3] = null;
-					neighbours[4] = null;
+					neighbours[2] = dummy;
+					neighbours[3] = dummy;
+					neighbours[4] = dummy;
 				}else{
 					int relativeRightNeighbourChunkID = (relativeChunkID==maxChunkID?0:(relativeChunkID+1));
 					neighbours[2] = grid[relativeRightNeighbourChunkID][0][yPositionID-1];
@@ -206,9 +227,9 @@ public class WrappableSpatialHashGrid {
 			}
 		}else{
 			if(yPositionID == 0){
-				neighbours[0] = null;
-				neighbours[1] = null;
-				neighbours[2] = null;
+				neighbours[0] = dummy;
+				neighbours[1] = dummy;
+				neighbours[2] = dummy;
 				neighbours[3] = grid[relativeChunkID][xPositionID+1][yPositionID];
 				neighbours[4] = grid[relativeChunkID][xPositionID+1][yPositionID+1];
 				neighbours[5] = grid[relativeChunkID][xPositionID][yPositionID+1];
@@ -219,9 +240,9 @@ public class WrappableSpatialHashGrid {
 				neighbours[1] = grid[relativeChunkID][xPositionID][yPositionID-1];
 				neighbours[2] = grid[relativeChunkID][xPositionID+1][yPositionID-1];
 				neighbours[3] = grid[relativeChunkID][xPositionID+1][yPositionID];
-				neighbours[4] = null;
-				neighbours[5] = null;
-				neighbours[6] = null;
+				neighbours[4] = dummy;
+				neighbours[5] = dummy;
+				neighbours[6] = dummy;
 				neighbours[7] = grid[relativeChunkID][xPositionID-1][yPositionID];
 			}else{
 				neighbours[0] = grid[relativeChunkID][xPositionID-1][yPositionID-1];
@@ -236,11 +257,11 @@ public class WrappableSpatialHashGrid {
 		}		
 	}
 	
-	public Obstacle get(int chunkID, int xPositionID, int yPositionID){
+	public Array<Obstacle> get(int chunkID, int xPositionID, int yPositionID){
 		try{
 			return grid[(chunkID+leftIndex)%numChunks][xPositionID][yPositionID];
 		}catch(ArrayIndexOutOfBoundsException e){
-			return null;
+			return dummy;
 		}
 	}
 }

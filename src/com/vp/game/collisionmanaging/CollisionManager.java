@@ -1,5 +1,6 @@
 package com.vp.game.collisionmanaging;
 
+import com.badlogic.gdx.utils.Array;
 import com.vp.game.gameelements.Chunk;
 import com.vp.game.tools.WrappingArray;
 import com.vp.game.units.Ninja;
@@ -17,13 +18,14 @@ public class CollisionManager {
 		this.ninja = ninja;
 	}
 	
-	Obstacle[] neighbours = new Obstacle[9];
+	@SuppressWarnings("unchecked")
+	Array<Obstacle>[] neighbours = (Array<Obstacle>[]) new Array[9];
 	
 	public boolean checkCollisions(){
 		Obstacle.spatialHashGrid.getNeighboursAndMiddle(neighbours, ninja.position.x,  ninja.position.y);
 		for(int i = 0; i < 9; i++){
-			if(neighbours[i]!=null){
-				if(ninja.collidesWith(neighbours[i])){
+			for (int j = 0; j < neighbours[i].size; j++) {
+				if(ninja.collidesWith(neighbours[i].get(j))){
 					return true;
 				}
 			}
