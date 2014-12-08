@@ -1,12 +1,16 @@
 package com.vp.game.tools;
 
 import com.badlogic.gdx.utils.Array;
+import com.vp.game.gameelements.Chunk;
 import com.vp.game.units.Obstacle;
 import com.vp.game.worldelements.WorldElement;
 
 public class WrappableSpatialHashGrid {
 	//first dimension are the chunks
 	private final Array<Obstacle>[][][] grid;
+	//The array which contains chunks which then contain obstacles
+	private final Array<Chunk> chunkArray;
+	
 	private final float xBlockSize;
 	private final float yBlockSize;
 	private final float xChunkSize;
@@ -35,7 +39,7 @@ public class WrappableSpatialHashGrid {
 	private int globalRightChunkID;
 	
 	@SuppressWarnings("unchecked")
-	public WrappableSpatialHashGrid(float xDimBlockSize, float yDimBlockSize, float xChunkSize, float yChunkSize, int numChunks, float leftXPosition, float topYPosition) {
+	public WrappableSpatialHashGrid(float xDimBlockSize, float yDimBlockSize, float xChunkSize, float yChunkSize, int numChunks, float topYPosition) {
 		int chunkXDim = (int)Math.ceil(xChunkSize/xDimBlockSize);
 		int chunkYDim = (int)Math.ceil(yChunkSize/yDimBlockSize);
 		assert(chunkXDim>=2);
@@ -56,10 +60,17 @@ public class WrappableSpatialHashGrid {
 		this.maxYInChunk = chunkYDim-1;
 		this.numChunks = numChunks;
 		this.rightIndex = numChunks-1;
-		this.leftXPosition = leftXPosition;
 		this.topYPosition = topYPosition;
 		this.globalRightChunkID = numChunks -1;
 		this.maxChunkID = numChunks-1;
+		chunkArray = new Array<Chunk>(false, numChunks);
+		for(int i = 0; i< numChunks; i++){
+			chunkArray.add(null);
+		}
+	}
+	
+	public void setLeftXPosition(float leftXPosition){
+		this.leftXPosition = leftXPosition;
 	}
 	
 	public void wrapRight(){
@@ -263,5 +274,25 @@ public class WrappableSpatialHashGrid {
 		}catch(ArrayIndexOutOfBoundsException e){
 			return dummy;
 		}
+	}
+	
+	public Chunk getChunk(int index){
+		return chunkArray.get((leftIndex+index)%numChunks);
+	}
+	
+	public Chunk getFirstChunk(){
+		return chunkArray.get(leftIndex);
+	}
+	
+	public Chunk getLastChunk(){
+		return chunkArray.get(rightIndex);
+	}
+	
+	public void setChunk(int index, Chunk element){
+		chunkArray.set((leftIndex+index)%numChunks, element);
+	}
+	
+	public int getNumChunk() {
+		return numChunks;
 	}
 }

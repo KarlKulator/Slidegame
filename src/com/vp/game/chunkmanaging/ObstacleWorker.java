@@ -8,12 +8,15 @@ import com.vp.game.worldelements.Floor;
 
 public class ObstacleWorker implements ChunkWorker {
 	
+	private final CollisionManager colManager;
+	
 	private final float chunkHeight;	
 	private final float chunkWidth;
 	
-	public ObstacleWorker(float chunkHeight, float chunkWidth) {
+	public ObstacleWorker(float chunkHeight, float chunkWidth, CollisionManager colManager) {
 		this.chunkHeight = chunkHeight;
 		this.chunkWidth = chunkWidth;
+		this.colManager = colManager;
 	}
 	@Override
 	public void onChunkSpawn(Chunk chunk) {
@@ -24,21 +27,14 @@ public class ObstacleWorker implements ChunkWorker {
 
 			Wolf wolf = Wolf.pool.obtain();
 			wolf.setAttributes(spawnPositionX, 0, spawnPositionZ, 1, 0, 20);
-			boolean collides = false;
-			for(Obstacle w : chunk.obstacles){
-				if(wolf.collidesWith(w)){
-					collides = true;
-					break;
-				}
-			}
-			if(collides){
+			if(colManager.checkCollisions(wolf)){
 				Wolf.pool.free(wolf);
 			}else{
-				if(Obstacle.spatialHashGrid.put(wolf, spawnPositionX, spawnPositionZ))
-					chunk.obstacles.add(wolf);
+				if(!Obstacle.spatialHashGrid.put(wolf, spawnPositionX, spawnPositionZ)){
+					Wolf.pool.free(wolf);
+				}					
 			}
-		}
-		
+		}		
 	}
 
 	@Override
@@ -47,6 +43,6 @@ public class ObstacleWorker implements ChunkWorker {
 			obs.free();
 			Obstacle.spatialHashGrid.remove(obs);
 		}
-		chunk.obstacles.clear();		
+		chunk.obstacles.clear();
 	}
 }

@@ -5,16 +5,13 @@ import com.vp.game.gameelements.Chunk;
 import com.vp.game.tools.WrappingArray;
 import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
+import com.vp.game.units.Unit;
 
 public class CollisionManager {
-	//The Chunks(WrappingArray) where the obstacles are on
-	private final WrappingArray<Chunk> chunks;
-	
 	//The main character to check collision for
 	private final Ninja ninja;
 	
-	public CollisionManager(WrappingArray<Chunk> chunks, Ninja ninja) {
-		this.chunks = chunks;
+	public CollisionManager(Ninja ninja) {
 		this.ninja = ninja;
 	}
 	
@@ -32,5 +29,18 @@ public class CollisionManager {
 		}
 		return false;
 	}
+	
+	public boolean checkCollisions(Unit unit){
+		Obstacle.spatialHashGrid.getNeighboursAndMiddle(neighbours, unit.position.x,  unit.position.y);
+		for(int i = 0; i < 9; i++){
+			for (int j = 0; j < neighbours[i].size; j++) {
+				if(unit.collidesWith(neighbours[i].get(j))){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 
 }

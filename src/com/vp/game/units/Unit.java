@@ -4,9 +4,11 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.vp.game.worldelements.WorldElement;
 
 public abstract class Unit implements WorldElement {
+	public static Array<Unit> unitsInRange;
 	
 	public Vector2 position;
 	public float positionY;

@@ -34,7 +34,6 @@ public class Simulation extends InputAdapter{
 	final public Walls walls;
 	
 	final public ChunkManager chunkManager;
-	final public WrappingArray<Chunk> chunks;
 	final public Array<Unit> unitsInRange;
 	
 	final public CollisionManager colManager;
@@ -48,13 +47,15 @@ public class Simulation extends InputAdapter{
 		this.plane = new Plane(new Vector3(0,1.0f,0),0);
 		this.floor = new Floor(cam, 0, 1400, 200);
 		this.walls = new Walls(-floor.height/2,floor.height/2,ninja);
-		this.chunks = new WrappingArray<Chunk>(4);	
-		this.obsUpdater = new ObstacleUpdater(chunks);
-		this.chunkManager = new ChunkManager(ninja, this, chunks, 300);	
 		
 		float hashGridBlockSize = (ninja.radius+Wolf.STANDARD_RADIUS);
-		Obstacle.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, chunkManager.getChunkWidth(), floor.height, chunks.getSize(), chunkManager.getXPosition(), -floor.height/2);
-		this.colManager = new CollisionManager(chunks, ninja);
+		Obstacle.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, 300, floor.height, 4, -floor.height/2);
+		Unit.unitsInRange = new Array<Unit>(false, 100);	
+		
+		this.colManager = new CollisionManager(ninja);
+		this.chunkManager = new ChunkManager(ninja, this, 300, colManager);		
+		this.obsUpdater = new ObstacleUpdater(colManager);	
+			
 	}
 	
 	public void init(){
