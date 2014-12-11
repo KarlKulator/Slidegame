@@ -41,7 +41,9 @@ public class TurnFiniteLineTrajectory extends Trajectory {
 				float distanceMovedInThisStep = delta*unit.speed;
 				distanceMoved += distanceMovedInThisStep;
 				if(distanceMoved < distanceToMove){				
-					unit.position.add(unit.direction.x*distanceMovedInThisStep, unit.direction.y*distanceMovedInThisStep);
+					float newPositionX = unit.position.x + unit.direction.x*distanceMovedInThisStep;
+					float newPositionY =  unit.position.y + unit.direction.y*distanceMovedInThisStep;
+					unit.move(newPositionX, newPositionY);
 				}else{
 					finished = true;
 				}

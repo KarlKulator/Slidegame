@@ -15,6 +15,7 @@ public class WrappableSpatialHashGrid {
 	private final float yBlockSize;
 	private final float xChunkSize;
 	private final float yChunkSize;
+	public final float xDimBlockSize;
 	private final int maxXInChunk;
 	private final int maxYInChunk;
 	
@@ -56,6 +57,7 @@ public class WrappableSpatialHashGrid {
 		this.yBlockSize = yChunkSize/chunkYDim;
 		this.xChunkSize = xChunkSize;
 		this.yChunkSize = yChunkSize;
+		this.xDimBlockSize = xDimBlockSize;
 		this.maxXInChunk = chunkXDim-1;
 		this.maxYInChunk = chunkYDim-1;
 		this.numChunks = numChunks;
@@ -78,6 +80,7 @@ public class WrappableSpatialHashGrid {
 		rightIndex=(rightIndex==(numChunks-1))?0:rightIndex+1;
 		globalLeftChunkID++;
 		globalRightChunkID++;
+		leftXPosition+=xChunkSize;
 	}
 	
 	public void wrapLeft(){
@@ -85,6 +88,14 @@ public class WrappableSpatialHashGrid {
 		leftIndex=(leftIndex==0)?(numChunks-1):leftIndex-1;
 		globalLeftChunkID--;
 		globalRightChunkID--;
+		leftXPosition-=xChunkSize;
+	}
+	
+	public float getLeftXPositionOfBlock(float positionX){
+		float xPosToLeftSide = positionX - leftXPosition;
+		int chunkID = (int) (xPosToLeftSide/xChunkSize);
+		int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
+		return leftXPosition + chunkID * xChunkSize + xPosID * xBlockSize;
 	}
 	
 	public boolean put(Obstacle obs, float positionX, float positionY){
@@ -98,6 +109,7 @@ public class WrappableSpatialHashGrid {
 	public boolean put(Obstacle obs, int chunkID, int xPosID, int yPosID){
 		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		try{
+			chunkArray.get(relativeChunkID).add(obs);
 			grid[relativeChunkID][xPosID][yPosID].add(obs);
 			obs.globalChunkID = chunkID + globalLeftChunkID;
 			obs.xPositionID = xPosID;
@@ -108,20 +120,43 @@ public class WrappableSpatialHashGrid {
 		}
 	}
 	
-	public boolean move(Obstacle obs, float positionX, float positionY, int globalChunkID, int xPositionID, int yPositionID){
+	public boolean move(Obstacle obs, float positionX, float positionY){
 			float xPosToLeftSide = positionX - leftXPosition;
 			int chunkID = (int) (xPosToLeftSide/xChunkSize);
 			int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 			int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
-			if(globalChunkID-globalLeftChunkID!=chunkID||xPosID!=xPositionID||yPosID!=yPositionID){
-				grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID].removeValue(obs, true);	
+			int globalChunkID = obs.globalChunkID; 
+			int xPositionID = obs.globalChunkID; 
+			int yPositionID = obs.globalChunkID;
+			
+			if(globalChunkID-globalLeftChunkID!=chunkID){
+				remove(obs);
 				return put(obs, chunkID, xPosID, yPosID);
+			}else if (xPosID!=xPositionID||yPosID!=yPositionID){
+				grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID].removeValue(obs, true);	
+				int relativeChunkID = (chunkID+leftIndex)%numChunks;
+				try{					
+					grid[relativeChunkID][xPosID][yPosID].add(obs);
+					obs.globalChunkID = chunkID + globalLeftChunkID;
+					obs.xPositionID = xPosID;
+					obs.yPositionID = yPosID;
+					return true;	
+				}catch(ArrayIndexOutOfBoundsException e){
+					return false;
+				}
 			}
 			return true;
 	}
 	
-	public void remove(Obstacle obs){
-		grid[((obs.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][obs.xPositionID][obs.yPositionID].removeValue(obs, true);
+	public boolean remove(Obstacle obs){
+		int relativeChunkID = ((obs.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks;
+		try{
+			grid[relativeChunkID][obs.xPositionID][obs.yPositionID].removeValue(obs, true);
+			chunkArray.get(relativeChunkID).removeObs(obs);
+			return true;
+		}catch(ArrayIndexOutOfBoundsException e){
+			return false;
+		}
 	}
 	
 	public void getNeighboursAndMiddle(Array<Obstacle>[] neighbours, float positionX, float positionY){

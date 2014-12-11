@@ -102,6 +102,11 @@ public abstract class Unit implements WorldElement {
 		this.speed = speed;
 	}
 	
+	public void move(float positionX, float positionY){
+		this.position.x = positionX;
+		this.position.y = positionY;
+	}
+	
 	public float distance(Unit otherUnit){
 		return position.dst(otherUnit.position);
 	}

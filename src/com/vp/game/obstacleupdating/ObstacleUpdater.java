@@ -23,24 +23,28 @@ public class ObstacleUpdater implements WorldElement{
 	public void update(float delta) {
 		for (int i = 0; i < Unit.unitsInRange.size; i++) {
 			Wolf wolf = (Wolf) Unit.unitsInRange.get(i);
+			
+			//Set new Trajectory if finished
 			if(wolf.tra.finished){
 				float turnAngle = (float)((Math.random() * 2 - 1) * Math.PI);
 				((TurnFiniteLineTrajectory) wolf.tra).setTrajectory((float)Math.random()*100, turnAngle);
 			}
+			
+			//Save old position then update
 			float posXOld = wolf.position.x;
 			float posYOld = wolf.position.y;
 			wolf.tra.update(delta);
-			if(!Obstacle.spatialHashGrid.move(wolf, wolf.position.x, wolf.position.y, wolf.globalChunkID, wolf.xPositionID, wolf.yPositionID)){
-				Unit.unitsInRange.removeIndex(i);
-				i--;
-			}else{
-				if(colManager.checkCollisions(wolf)){
-					wolf.position.x = posXOld;
-					wolf.position.y = posYOld;
-					float turnAngle = (float)((Math.random() * 2 - 1) * Math.PI);
-					((TurnFiniteLineTrajectory) wolf.tra).setTrajectory((float)Math.random()*100, turnAngle);
-				}
-			}			
+			
+			//Check collisions
+			if(colManager.checkCollisions(wolf)){
+				wolf.position.x = posXOld;
+				wolf.position.y = posYOld;
+				wolf.tra.finished = true;
+			}
+			
+			//Check if still in update range
+			
+			
 		}
 	}
 

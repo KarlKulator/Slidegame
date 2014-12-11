@@ -1,16 +1,19 @@
 package com.vp.game.units;
 
 import com.badlogic.gdx.utils.Array;
+import com.vp.game.tools.ListElement;
 import com.vp.game.tools.WrappableSpatialHashGrid;
 
 
-public abstract class Obstacle extends Unit {
+public abstract class Obstacle extends Unit{
 	public static WrappableSpatialHashGrid spatialHashGrid;
 	
 	//The IDs in the spatialHashGrid;
 	public int globalChunkID;
 	public int xPositionID;
 	public int yPositionID;
+	public int chunkArrayID;
+
 	
 	public Obstacle(float positionX, float positionY, float positionZ,
 			float directionX, float directionY, float directionZ, float speed,
@@ -27,6 +30,17 @@ public abstract class Obstacle extends Unit {
 		super(radius);		
 	}
 	
+	public void spawn(float positionX, float positionY){
+		this.position.x = positionX;
+		this.position.y = positionY;
+		spatialHashGrid.put(this, positionX, positionY);
+	}
+	
+	public void move(float positionX, float positionY){
+		this.position.x = positionX;
+		this.position.y = positionY;
+		spatialHashGrid.move(this, positionX, positionY);
+	}
+	
 	public abstract void free();
-
 }

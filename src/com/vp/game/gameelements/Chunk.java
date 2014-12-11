@@ -4,22 +4,36 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.badlogic.gdx.utils.Array;
 import com.vp.game.units.Obstacle;
 
 public class Chunk{
 	
-	public final List<Obstacle> obstacles;
+	public final Array<Obstacle> obstacles;
 	public float position;
 	public float width;
 	
 	public Chunk(float position, float width) {
-		this.obstacles = new LinkedList<Obstacle>();
-		this.position = position;
-		this.width = width;
+		this(width);	
+		this.position = position;			
 	}
 	
 	public Chunk(float width) {
-		this.obstacles = new LinkedList<Obstacle>();
+		this.obstacles = new Array<Obstacle>(false, 40);
 		this.width = width;
+	}
+	
+	public void removeObs(Obstacle obs){
+		int id = obs.chunkArrayID;
+		obstacles.removeIndex(id);
+		Obstacle newOnId = obstacles.get(id);
+		if(newOnId != null){
+			newOnId.chunkArrayID = id;
+		}
+	}
+
+	public void add(Obstacle obs) {
+		obs.chunkArrayID = obstacles.size;
+		obstacles.add(obs);		
 	}
 }
