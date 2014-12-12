@@ -38,14 +38,18 @@ public class ChunkManager {
 		this.chunks = Obstacle.spatialHashGrid;
 		this.chunkAmount = chunks.getNumChunk();
 		this.chunkWidth = chunkWidth;
-		this.minUnitPos = 0;
-		this.maxUnitPos = 2 * chunkWidth;
+		this.minUnitPos = unit.position.x;
 		this.obsWorker = new ObstacleWorker(sim.floor.height, chunkWidth, colManager);
-		float currentPos = 0;
+		float currentPos = this.minUnitPos;
+		int j = 0;
 		for(int i = (chunkAmount-1)/2; i < chunkAmount; i++){
 			Chunk addChunk = new Chunk(currentPos, chunkWidth);
 			chunks.setChunk(i, addChunk);
 			currentPos += chunkWidth;
+			j++;
+			if(j==1){
+				this.maxUnitPos = currentPos;
+			}			
 		}
 		currentPos = -chunkWidth;
 		for(int i = (chunkAmount-1)/2-1; i >= 0; i--){
@@ -68,16 +72,16 @@ public class ChunkManager {
 			wrappedChunk.position = chunks.getLastChunk().position + chunkWidth;
 			chunks.wrapRight();	
 			spawn(wrappedChunk);
-			minUnitPos += chunkWidth;
-			maxUnitPos += chunkWidth;
+			minUnitPos = chunks.getChunk((chunkAmount-1)/2).position;
+			maxUnitPos = chunks.getChunk((chunkAmount-1)/2+2).position;
 		}else if(unit.position.x < minUnitPos){
 			Chunk wrappedChunk = chunks.getLastChunk();
 			clear(wrappedChunk);
 			wrappedChunk.position = chunks.getFirstChunk().position - chunkWidth;
 			chunks.wrapLeft();	
 			spawn(wrappedChunk);
-			minUnitPos -= chunkWidth;
-			maxUnitPos -= chunkWidth;
+			minUnitPos = chunks.getChunk((chunkAmount-1)/2).position;
+			maxUnitPos = chunks.getChunk((chunkAmount-1)/2+2).position;
 		}
 	}
 

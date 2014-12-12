@@ -16,9 +16,10 @@ public class WrappableSpatialHashGrid {
 	private final float xChunkSize;
 	private final float yChunkSize;
 	public final float xDimBlockSize;
-	private final int maxXInChunk;
-	private final int maxYInChunk;
-	
+	public final int maxXInChunk;
+	public final int maxYInChunk;
+	public int chunkXDim;
+	public int chunkYDim;
 	
 	//The index in array of the chunk on the left
 	private int leftIndex;
@@ -38,11 +39,12 @@ public class WrappableSpatialHashGrid {
 	private int globalLeftChunkID;
 	//Global ID of the current right chunk
 	private int globalRightChunkID;
+
 	
 	@SuppressWarnings("unchecked")
 	public WrappableSpatialHashGrid(float xDimBlockSize, float yDimBlockSize, float xChunkSize, float yChunkSize, int numChunks, float topYPosition) {
-		int chunkXDim = (int)Math.ceil(xChunkSize/xDimBlockSize);
-		int chunkYDim = (int)Math.ceil(yChunkSize/yDimBlockSize);
+		this.chunkXDim = (int)Math.ceil(xChunkSize/xDimBlockSize);
+		this.chunkYDim = (int)Math.ceil(yChunkSize/yDimBlockSize);
 		assert(chunkXDim>=2);
 		assert(chunkYDim>=2);
 		grid = (Array<Obstacle>[][][]) new Array[numChunks][chunkXDim][chunkYDim];
@@ -80,7 +82,7 @@ public class WrappableSpatialHashGrid {
 		rightIndex=(rightIndex==(numChunks-1))?0:rightIndex+1;
 		globalLeftChunkID++;
 		globalRightChunkID++;
-		leftXPosition+=xChunkSize;
+		leftXPosition=getFirstChunk().position;
 	}
 	
 	public void wrapLeft(){
@@ -88,7 +90,7 @@ public class WrappableSpatialHashGrid {
 		leftIndex=(leftIndex==0)?(numChunks-1):leftIndex-1;
 		globalLeftChunkID--;
 		globalRightChunkID--;
-		leftXPosition-=xChunkSize;
+		leftXPosition=getFirstChunk().position;
 	}
 	
 	public float getLeftXPositionOfBlock(float positionX){
@@ -96,6 +98,21 @@ public class WrappableSpatialHashGrid {
 		int chunkID = (int) (xPosToLeftSide/xChunkSize);
 		int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 		return leftXPosition + chunkID * xChunkSize + xPosID * xBlockSize;
+	}
+	
+	public float getXPositionOfCellWithGlobalID(int globalChunkID, int xPositionID){
+			return leftXPosition + (globalChunkID-globalLeftChunkID) * xChunkSize + xPositionID * xBlockSize;
+	}
+	
+	public void getIDOfPosition(int[]IDs, float positionX, float positionY){
+		float xPosToLeftSide = positionX - leftXPosition;
+		int chunkID = (int) (xPosToLeftSide/xChunkSize);
+		int globalChunkID = chunkID + globalLeftChunkID;
+		int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
+		int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
+		IDs[0] = globalChunkID;
+		IDs[1] = xPosID;
+ 		IDs[2] = yPosID;
 	}
 	
 	public boolean put(Obstacle obs, float positionX, float positionY){
@@ -308,6 +325,14 @@ public class WrappableSpatialHashGrid {
 			return grid[(chunkID+leftIndex)%numChunks][xPositionID][yPositionID];
 		}catch(ArrayIndexOutOfBoundsException e){
 			return dummy;
+		}
+	}
+	
+	public Array<Obstacle>[] getYColumn(int globalChunkID, int xPositionID){
+		try{
+			return grid[(globalChunkID- globalLeftChunkID +leftIndex)%numChunks][xPositionID];
+		}catch(ArrayIndexOutOfBoundsException e){
+			return null;
 		}
 	}
 	

@@ -30,9 +30,11 @@ public class ObstacleWorker implements ChunkWorker {
 			if(colManager.checkCollisions(wolf)){
 				Wolf.pool.free(wolf);
 			}else{
-				if(!Obstacle.spatialHashGrid.put(wolf, spawnPositionX, spawnPositionZ)){
+				if(Obstacle.spatialHashGrid.put(wolf, spawnPositionX, spawnPositionZ)){
+					wolf.spawn(spawnPositionX, spawnPositionZ);
+				}else{
 					Wolf.pool.free(wolf);
-				}					
+				}
 			}
 		}		
 	}
