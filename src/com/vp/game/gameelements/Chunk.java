@@ -26,9 +26,8 @@ public class Chunk{
 	public void removeObs(Obstacle obs){
 		int id = obs.chunkArrayID;
 		obstacles.removeIndex(id);
-		Obstacle newOnId = obstacles.get(id);
-		if(newOnId != null){
-			newOnId.chunkArrayID = id;
+		if( id < obstacles.size){
+			obstacles.get(id).chunkArrayID = id;
 		}
 	}
 

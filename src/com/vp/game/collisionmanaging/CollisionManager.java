@@ -34,7 +34,8 @@ public class CollisionManager {
 		Obstacle.spatialHashGrid.getNeighboursAndMiddle(neighbours, unit.position.x,  unit.position.y);
 		for(int i = 0; i < 9; i++){
 			for (int j = 0; j < neighbours[i].size; j++) {
-				if(unit.collidesWith(neighbours[i].get(j))){
+				Unit n = neighbours[i].get(j);
+				if(n != unit && unit.collidesWith(n)){
 					return true;
 				}
 			}

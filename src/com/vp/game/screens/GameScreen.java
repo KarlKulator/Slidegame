@@ -26,20 +26,23 @@ public class GameScreen implements Screen {
 		cam.far = 1000f;
 		cam.update();
 		
-		
+		rend = new Renderer();
 		sim = new Simulation(cam);
-		rend = new Renderer(sim);
-		sim.init();
+		rend.setSim(sim);
 		Gdx.input.setInputProcessor(sim);	
 
 	}
 	@Override
 	public void render(float delta) {
 		if(delta<1.0f/10){
+		//	long startTime = System.nanoTime();
 			if(!sim.update(delta)){
 				game.setScreen(new MainMenuScreen(game));
 			}
+		//	System.out.println("update: " + (System.nanoTime() - startTime)/1000);
+		//	startTime = System.nanoTime();
 			rend.render(delta);
+		//	System.out.println("render: " + (System.nanoTime() - startTime)/1000);
 		}
 	}
 

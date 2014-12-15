@@ -9,6 +9,7 @@ import com.vp.game.worldelements.WorldElement;
 
 public abstract class Unit implements WorldElement {
 	public static Array<Unit> unitsInRange;
+	public static Array<Unit> units;
 	
 	public Vector2 position;
 	public float positionY;
@@ -23,6 +24,9 @@ public abstract class Unit implements WorldElement {
 	public final ModelInstance modelInstance;
 	public final AnimationController animC;
 	private static Model model;
+	
+	public int idInUnitsInRange;
+	public int idInUnits;
 	
 	public Unit(){
 		position = new Vector2();

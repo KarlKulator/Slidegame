@@ -20,7 +20,6 @@ public class ObstacleWorker implements ChunkWorker {
 	}
 	@Override
 	public void onChunkSpawn(Chunk chunk) {
-		
 		for(int i = 0; i < 10; i++){
 			float spawnPositionX = ((float) Math.random()) * (chunkWidth-4*Wolf.STANDARD_RADIUS) + chunk.position + 2*Wolf.STANDARD_RADIUS;
 			float spawnPositionZ = ((float) Math.random()) * (chunkHeight-2*Wolf.STANDARD_RADIUS) - (chunkHeight/2-Wolf.STANDARD_RADIUS);
@@ -30,11 +29,8 @@ public class ObstacleWorker implements ChunkWorker {
 			if(colManager.checkCollisions(wolf)){
 				Wolf.pool.free(wolf);
 			}else{
-				if(Obstacle.spatialHashGrid.put(wolf, spawnPositionX, spawnPositionZ)){
-					wolf.spawn(spawnPositionX, spawnPositionZ);
-				}else{
-					Wolf.pool.free(wolf);
-				}
+				wolf.tra.finished = true;
+				wolf.spawn(spawnPositionX, spawnPositionZ);				
 			}
 		}		
 	}
@@ -43,8 +39,6 @@ public class ObstacleWorker implements ChunkWorker {
 	public void onChunkClear(Chunk chunk) {
 		for(Obstacle obs : chunk.obstacles){
 			obs.free();
-			Obstacle.spatialHashGrid.remove(obs);
 		}
-		chunk.obstacles.clear();
 	}
 }

@@ -33,14 +33,21 @@ public abstract class Obstacle extends Unit{
 	public void spawn(float positionX, float positionY){
 		this.position.x = positionX;
 		this.position.y = positionY;
+		idInUnits = units.size;
+		units.add(this);
 		spatialHashGrid.put(this, positionX, positionY);
 	}
 	
 	public void move(float positionX, float positionY){
 		this.position.x = positionX;
 		this.position.y = positionY;
-		spatialHashGrid.move(this, positionX, positionY);
-	}
+			if(!spatialHashGrid.move(this, positionX, positionY)){
+				System.out.println(false);
+			}
+		}
+		
 	
 	public abstract void free();
+	
+	
 }

@@ -57,6 +57,7 @@ public class ChunkManager {
 			currentPos -= chunkWidth;
 		}	
 		Obstacle.spatialHashGrid.setLeftXPosition(chunks.getFirstChunk().position);
+		initChunks();
 	}
 	
 	public void initChunks(){
@@ -66,7 +67,7 @@ public class ChunkManager {
 	}
 	
 	public void update() {
-		if(unit.position.x > maxUnitPos){
+		if(unit.position.x >= maxUnitPos){
 			Chunk wrappedChunk = chunks.getFirstChunk();
 			clear(wrappedChunk);
 			wrappedChunk.position = chunks.getLastChunk().position + chunkWidth;

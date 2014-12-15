@@ -191,7 +191,6 @@ public class WrappableSpatialHashGrid {
 	public void getNeighbours(Array<Obstacle>[] neighbours, int chunkID, int xPositionID, int yPositionID){
 		
 		int relativeChunkID = (chunkID+leftIndex)%numChunks;
-		
 		if(xPositionID == 0){
 			if(yPositionID == 0){
 				neighbours[0] = dummy;

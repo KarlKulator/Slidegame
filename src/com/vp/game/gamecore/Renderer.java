@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.vp.game.units.Obstacle;
+import com.vp.game.units.Unit;
 import com.vp.game.units.Wolf;
 
 public class Renderer {
@@ -37,7 +38,7 @@ public class Renderer {
 
 	final private AssetManager assets;
 
-	final private Model planeModel;
+	private Model planeModel;
 	final private ModelInstance[] floorTiles = new ModelInstance[3];
 	final private Model ninjaModel;
 	final private ModelInstance ninjaModelInstance;
@@ -47,10 +48,9 @@ public class Renderer {
 	final private Environment environment;
 	final private AnimationController animController;
 	final private AnimationController animController2;
-	final private Simulation sim;
+	private Simulation sim;
 
-	public Renderer(Simulation sim) {
-		this.sim = sim;
+	public Renderer() {
 
 		stage = new Stage();
 		font = new BitmapFont();
@@ -73,15 +73,6 @@ public class Renderer {
 		modelBatch = new ModelBatch();
 
 		modelBuilder = new ModelBuilder();
-
-		planeModel = createPlaneModel(sim.floor.tileWidth, sim.floor.height, new Material(), 0, 0, 1, 1);
-		floorTiles[0] = new ModelInstance(planeModel);
-		floorTiles[1] = new ModelInstance(planeModel);
-		floorTiles[2] = new ModelInstance(planeModel);
-		Texture iceTex = assets.get("icetexture.jpg", Texture.class);
-		floorTiles[0].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
-		floorTiles[1].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
-		floorTiles[2].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
 
 		ninjaModel = assets.get("HeroDemonHunterfullbaked.g3dj", Model.class);
 		ninjaModel.materials.get(0).set(
@@ -112,6 +103,18 @@ public class Renderer {
 		// Pick the current animation by name
 		//animController2.setAnimation("A|Wolf_wartepose", -1);
 	}
+	
+	public void setSim(Simulation sim){
+		this.sim = sim;
+		planeModel = createPlaneModel(sim.floor.tileWidth, sim.floor.height, new Material(), 0, 0, 1, 1);
+		floorTiles[0] = new ModelInstance(planeModel);
+		floorTiles[1] = new ModelInstance(planeModel);
+		floorTiles[2] = new ModelInstance(planeModel);
+		Texture iceTex = assets.get("icetexture.jpg", Texture.class);
+		floorTiles[0].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
+		floorTiles[1].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
+		floorTiles[2].materials.get(0).set(TextureAttribute.createDiffuse(iceTex));
+	}
 
 	public void render(float delta) {
 
@@ -130,18 +133,16 @@ public class Renderer {
 		double angle = Math.atan2(sim.ninja.direction.x, sim.ninja.direction.y);
 		ninjaModelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
 				.setTranslation(sim.ninja.position.x, sim.ninja.positionY, sim.ninja.position.y);
-		
-		for (int i = 0; i < sim.chunks.getSize(); i++) {
-			for(Obstacle obs : sim.chunks.get(i).obstacles){
-				if(obs.position.x>sim.cam.position.x-200 && obs.position.x<sim.cam.position.x+200){
-					obs.animC.update(delta);
-					angle = Math.atan2(obs.direction.x, obs.direction.y);
-					obs.modelInstance.transform
-						.setTranslation(obs.position.x, obs.positionY, obs.position.y);
-				}
-			}
+		//long startTime = System.nanoTime();
+		for(int i = 0; i < Unit.unitsInRange.size; i++){
+			Unit unit = Unit.unitsInRange.get(i);
+			unit.animC.update(delta);
+			angle = Math.atan2(unit.direction.x, unit.direction.y);
+			unit.modelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
+				.setTranslation(unit.position.x, unit.positionY, unit.position.y);
 		}
-		
+		//System.out.println("render move obs modelInst: " + (System.nanoTime() - startTime)/1000);		
+	
 		if(sim.floor.hasChanged){
 			floorTiles[0].transform.setTranslation(sim.floor.xPositions[0], 0, 0);
 			floorTiles[1].transform.setTranslation(sim.floor.xPositions[1], 0, 0);
@@ -155,16 +156,14 @@ public class Renderer {
 		modelBatch.render(floorTiles[1], environment);
 		modelBatch.render(floorTiles[2], environment);
 		modelBatch.render(ninjaModelInstance, environment);
-		for (int i = 0; i < sim.chunks.getSize(); i++) {
-			List<Obstacle> l = sim.chunks.get(i).obstacles;
-			for(int j = 0; j < l.size(); j++){
-				Obstacle obs = l.get(j);
-				if(obs.position.x>sim.cam.position.x-200 && obs.position.x<sim.cam.position.x+200){
-					modelBatch.render(obs.modelInstance, environment);
-				}
-			}
+		//startTime = System.nanoTime();
+		for(int i = 0; i < Unit.unitsInRange.size; i++){
+			Unit unit = Unit.unitsInRange.get(i);
+			modelBatch.render(unit.modelInstance, environment);
 		}
+		//System.out.println("render render obs: " + (System.nanoTime() - startTime)/1000);
 		modelBatch.end();
+		//System.out.println("render render obs2: " + (System.nanoTime() - startTime)/1000);
 		// Draw FPS
 		stringBuilder.setLength(0);
 		stringBuilder.append(" FPS: ")

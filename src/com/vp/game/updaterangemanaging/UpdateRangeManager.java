@@ -1,4 +1,4 @@
-package com.vp.game.updateRangeManaging;
+package com.vp.game.updaterangemanaging;
 
 import com.badlogic.gdx.utils.Array;
 import com.vp.game.units.Obstacle;
@@ -42,12 +42,14 @@ public class UpdateRangeManager{
 		maxXRightGlobalChunkID = middleGlobalChunkID + (middleXPositionID + (rangeSizeInCells+1)/2)/Obstacle.spatialHashGrid.chunkXDim;
 		maxXRightXPositionID = (middleXPositionID + (rangeSizeInCells+1)/2)%Obstacle.spatialHashGrid.chunkXDim;
 		
-		if(middleXPositionID - rangeSizeInCells/2 > 0){
+		if(middleXPositionID - rangeSizeInCells/2 >= 0){
 			maxXLeftGlobalChunkID = middleGlobalChunkID;
+			maxXLeftXPositionID = (middleXPositionID  - rangeSizeInCells/2);
 		}else{
 			maxXLeftGlobalChunkID = middleGlobalChunkID + (middleXPositionID - rangeSizeInCells/2)/Obstacle.spatialHashGrid.chunkXDim - 1;
+			maxXLeftXPositionID = ((middleXPositionID  - rangeSizeInCells/2)%Obstacle.spatialHashGrid.chunkXDim+Obstacle.spatialHashGrid.chunkXDim)%Obstacle.spatialHashGrid.chunkXDim;
 		}		
-		maxXRightXPositionID = (middleXPositionID + middleXPositionID - rangeSizeInCells/2)%Obstacle.spatialHashGrid.chunkXDim;
+		
 		
 		this.blockSize = Obstacle.spatialHashGrid.xDimBlockSize;
 		this.maxXLeftPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
@@ -60,6 +62,15 @@ public class UpdateRangeManager{
 		this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
 		this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
 		this.rangeSizeInCells = rangeSizeInCells;
+		
+		//Add units in range
+		for(int i = 0; i < Unit.units.size; i++){
+			Unit u = Unit.units.get(i);
+			if(u.position.x >= updateRangeXStart && u.position.x < updateRangeXEnd){
+				u.idInUnitsInRange = Unit.unitsInRange.size;
+				Unit.unitsInRange.add(u);
+			}
+		}
 	}
 
 //TODO safe range manager
@@ -69,7 +80,16 @@ public class UpdateRangeManager{
 			newYColumn = Obstacle.spatialHashGrid.getYColumn(maxXRightGlobalChunkID, maxXRightXPositionID);
 			if(newYColumn != null){
 				for(int i = 0; i < newYColumn.length; i++){
-					Unit.unitsInRange.addAll(newYColumn[i]);
+					for(int j = 0; j < newYColumn[i].size; j++){
+						Unit toAdd = newYColumn[i].get(j);
+						toAdd.idInUnitsInRange = Unit.unitsInRange.size;
+						if(Unit.unitsInRange.contains(toAdd, true)){
+							System.out.println("duplicate");
+							System.exit(1);
+						}
+						
+						Unit.unitsInRange.add(toAdd);
+					}					
 				}
 			}
 			if(middleXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
@@ -102,7 +122,7 @@ public class UpdateRangeManager{
 			
 			this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
 			this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
-		}else if(unit.position.y < maxXRightPosition){
+		}else if(unit.position.x < maxXLeftPosition){
 			if(middleXPositionID == 0){
 				middleGlobalChunkID--;
 				middleXPositionID = Obstacle.spatialHashGrid.maxXInChunk;
@@ -134,12 +154,28 @@ public class UpdateRangeManager{
 			newYColumn = Obstacle.spatialHashGrid.getYColumn(maxXLeftGlobalChunkID, maxXLeftXPositionID);
 			if(newYColumn != null){
 				for(int i = 0; i < newYColumn.length; i++){
-					Unit.unitsInRange.addAll(newYColumn[i]);
+					for(int j = 0; j < newYColumn[i].size; j++){
+						Unit toAdd = newYColumn[i].get(j);
+						toAdd.idInUnitsInRange = Unit.unitsInRange.size;
+						if(Unit.unitsInRange.contains(toAdd, true)){
+							System.out.println("duplicate");
+							System.exit(1);
+						}
+						Unit.unitsInRange.add(toAdd);
+					}					
 				}
 			}
 			
 			this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
 			this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);			
-		}		
+		}
+	}
+	
+	public void removeFromRange(Unit unit){
+		Unit.unitsInRange.removeIndex(unit.idInUnitsInRange);
+		if(unit.idInUnitsInRange < Unit.unitsInRange.size){
+			Unit.unitsInRange.get(unit.idInUnitsInRange).idInUnitsInRange = unit.idInUnitsInRange;
+		}
+		
 	}
 }

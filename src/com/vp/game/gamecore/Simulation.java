@@ -18,6 +18,7 @@ import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
 import com.vp.game.units.Wolf;
+import com.vp.game.updaterangemanaging.UpdateRangeManager;
 import com.vp.game.worldelements.Floor;
 import com.vp.game.worldelements.Walls;
 
@@ -34,38 +35,34 @@ public class Simulation extends InputAdapter{
 	final public Walls walls;
 	
 	final public ChunkManager chunkManager;
-	final public Array<Unit> unitsInRange;
 	
 	final public CollisionManager colManager;
+	final public UpdateRangeManager upRManager;
 	
 	final private Plane plane;
 
 	public Simulation(PerspectiveCamera cam) {
 		this.cam=cam;
-		this.ninja = new Ninja(0,0,0,1,0,0,100,25,9);
-		this.unitsInRange = new Array<Unit>(false, 30);
+		this.ninja = new Ninja(0,0,0,1,0,0,100,25,10);
 		this.plane = new Plane(new Vector3(0,1.0f,0),0);
 		this.floor = new Floor(cam, 0, 1400, 200);
 		this.walls = new Walls(-floor.height/2,floor.height/2,ninja);
 		
 		float hashGridBlockSize = (ninja.radius+Wolf.STANDARD_RADIUS);
-		Obstacle.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, 300, floor.height, 4, -floor.height/2);
+		Obstacle.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, 400, floor.height, 4, -floor.height/2);
 		Unit.unitsInRange = new Array<Unit>(false, 100);	
-		
+		Unit.units = new Array<Unit>(false, 100);
 		this.colManager = new CollisionManager(ninja);
-		this.chunkManager = new ChunkManager(ninja, this, 300, colManager);		
-		this.obsUpdater = new ObstacleUpdater(colManager);	
-			
+		this.chunkManager = new ChunkManager(ninja, this, 400, colManager);	
+		this.upRManager = new UpdateRangeManager(20, ninja);
+		this.obsUpdater = new ObstacleUpdater(colManager, upRManager, walls);	
 	}
 	
-	public void init(){
-		chunkManager.initChunks();
-	}
-
 	public boolean update(float delta) {		
 		ninja.update(delta);
 		cam.position.x = ninja.position.x;
-		//obsUpdater.update(delta);
+		upRManager.update();
+		obsUpdater.update(delta);
 		floor.update(delta);
 		walls.update(delta);
 		chunkManager.update();
