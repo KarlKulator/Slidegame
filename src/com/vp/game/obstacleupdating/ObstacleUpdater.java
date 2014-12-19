@@ -42,9 +42,8 @@ public class ObstacleUpdater implements WorldElement{
 			wolf.tra.update(delta);
 			
 			//Check collisions
-			if(colManager.checkCollisions(wolf) || wolf.position.y < walls.maxTopPosition || wolf.position.y >= walls.maxBottomPosition){
-				wolf.position.x = posXOld;
-				wolf.position.y = posYOld;
+			if(wolf.position.y < walls.maxTopPosition || wolf.position.y >= walls.maxBottomPosition || colManager.checkCollisions(wolf)){
+				wolf.move(posXOld, posYOld);
 				wolf.tra.finished = true;
 			}
 			

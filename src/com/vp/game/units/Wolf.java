@@ -8,7 +8,7 @@ import com.vp.game.trajectories.Trajectory;
 public class Wolf extends Obstacle {
 	
 	public final static float STANDARD_RADIUS = 10; 
-	public final static float STANDARD_TURNSPEED = 0.5f;
+	public final static float STANDARD_TURNSPEED = 10f;
 	
 	public final static Pool<Wolf> pool = new Pool<Wolf>(){
 		@Override
@@ -47,6 +47,9 @@ public class Wolf extends Obstacle {
 	public void free() {
 		spatialHashGrid.remove(this);
 		units.removeIndex(this.idInUnits);
+		if(this.idInUnits < units.size){
+			units.get(idInUnits).idInUnits = this.idInUnits;
+		}
 		Wolf.pool.free(this);
 	}
 

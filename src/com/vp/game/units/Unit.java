@@ -127,4 +127,9 @@ public abstract class Unit implements WorldElement {
 	public static void setModel(Model setModel){
 		model = setModel;
 	}	
+	
+	@Override
+	public String toString(){
+		return this.getClass().getName() + " : X: " + position.x + ", Y: "+ position.y;
+	}
 }

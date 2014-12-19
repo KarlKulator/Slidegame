@@ -134,8 +134,8 @@ public class Renderer {
 		ninjaModelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
 				.setTranslation(sim.ninja.position.x, sim.ninja.positionY, sim.ninja.position.y);
 		//long startTime = System.nanoTime();
-		for(int i = 0; i < Unit.unitsInRange.size; i++){
-			Unit unit = Unit.unitsInRange.get(i);
+		for(int i = 0; i < Unit.units.size; i++){
+			Unit unit = Unit.units.get(i);
 			unit.animC.update(delta);
 			angle = Math.atan2(unit.direction.x, unit.direction.y);
 			unit.modelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
@@ -157,8 +157,8 @@ public class Renderer {
 		modelBatch.render(floorTiles[2], environment);
 		modelBatch.render(ninjaModelInstance, environment);
 		//startTime = System.nanoTime();
-		for(int i = 0; i < Unit.unitsInRange.size; i++){
-			Unit unit = Unit.unitsInRange.get(i);
+		for(int i = 0; i < Unit.units.size; i++){
+			Unit unit = Unit.units.get(i);
 			modelBatch.render(unit.modelInstance, environment);
 		}
 		//System.out.println("render render obs: " + (System.nanoTime() - startTime)/1000);
@@ -167,7 +167,7 @@ public class Renderer {
 		// Draw FPS
 		stringBuilder.setLength(0);
 		stringBuilder.append(" FPS: ")
-				.append(Gdx.graphics.getFramesPerSecond());
+				.append(Gdx.graphics.getFramesPerSecond()).append(", XPos: " + (int) sim.ninja.position.x).append(", YPos: " + (int) sim.ninja.position.y);
 		label.setText(stringBuilder);
 		stage.draw();
 	}

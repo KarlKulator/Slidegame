@@ -3,6 +3,7 @@ package com.vp.game.tools;
 import com.badlogic.gdx.utils.Array;
 import com.vp.game.gameelements.Chunk;
 import com.vp.game.units.Obstacle;
+import com.vp.game.units.Unit;
 import com.vp.game.worldelements.WorldElement;
 
 public class WrappableSpatialHashGrid {
@@ -36,7 +37,7 @@ public class WrappableSpatialHashGrid {
 	private float topYPosition;
 	
 	//Global ID of the current left chunk
-	private int globalLeftChunkID;
+	public int globalLeftChunkID;
 	//Global ID of the current right chunk
 	private int globalRightChunkID;
 
@@ -131,10 +132,15 @@ public class WrappableSpatialHashGrid {
 			obs.globalChunkID = chunkID + globalLeftChunkID;
 			obs.xPositionID = xPosID;
 			obs.yPositionID = yPosID;
-			return true;	
+			Array<Obstacle> a = grid[relativeChunkID][xPosID][yPosID];
+			if(a.size>=3){
+				System.out.println("duplicate in grid");
+			}
 		}catch(ArrayIndexOutOfBoundsException e){
 			return false;
 		}
+
+		return true;
 	}
 	
 	public boolean move(Obstacle obs, float positionX, float positionY){
@@ -143,8 +149,8 @@ public class WrappableSpatialHashGrid {
 			int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 			int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
 			int globalChunkID = obs.globalChunkID; 
-			int xPositionID = obs.globalChunkID; 
-			int yPositionID = obs.globalChunkID;
+			int xPositionID = obs.xPositionID; 
+			int yPositionID = obs.yPositionID;
 			
 			if(globalChunkID-globalLeftChunkID!=chunkID){
 				remove(obs);
@@ -157,6 +163,10 @@ public class WrappableSpatialHashGrid {
 					obs.globalChunkID = chunkID + globalLeftChunkID;
 					obs.xPositionID = xPosID;
 					obs.yPositionID = yPosID;
+					Array<Obstacle> a = grid[(chunkID+leftIndex)%numChunks][xPosID][yPosID];
+					if(a.size>=3){
+						System.out.println("duplicate in grid");
+					}
 					return true;	
 				}catch(ArrayIndexOutOfBoundsException e){
 					return false;
@@ -178,6 +188,19 @@ public class WrappableSpatialHashGrid {
 	
 	public void getNeighboursAndMiddle(Array<Obstacle>[] neighbours, float positionX, float positionY){
 		float xPosToLeftSide = positionX - leftXPosition;
+		if(xPosToLeftSide<0){
+			System.out.println("<0");
+			for (Unit u : Unit.units) {
+				if(u.position.x == positionX){
+					System.out.println("found in units");
+				}
+			}
+			for (Unit u : Unit.unitsInRange) {
+				if(u.position.x == positionX){
+					System.out.println("found in unitsInRange");
+				}
+			}
+		}
 		int chunkID = (int) (xPosToLeftSide/xChunkSize);
 		int xPositionID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 		int yPositionID = (int) ((positionY - topYPosition)/yBlockSize);

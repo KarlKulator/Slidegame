@@ -85,7 +85,9 @@ public class UpdateRangeManager{
 						toAdd.idInUnitsInRange = Unit.unitsInRange.size;
 						if(Unit.unitsInRange.contains(toAdd, true)){
 							System.out.println("duplicate");
-							System.exit(1);
+						}
+						if(toAdd.position.x < updateRangeXStart+blockSize || toAdd.position.x >= updateRangeXEnd+blockSize){
+							System.out.println("wrong add");
 						}
 						
 						Unit.unitsInRange.add(toAdd);
