@@ -14,6 +14,9 @@ import com.vp.game.gameelements.Chunk;
 import com.vp.game.obstacleupdating.ObstacleUpdater;
 import com.vp.game.tools.WrappableSpatialHashGrid;
 import com.vp.game.tools.WrappingArray;
+import com.vp.game.units.GhostItem;
+import com.vp.game.units.HashedUnit;
+import com.vp.game.units.Item;
 import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
@@ -42,19 +45,29 @@ public class Simulation extends InputAdapter{
 	final private Plane plane;
 
 	public Simulation(PerspectiveCamera cam) {
+		//init pool
+		for (int i = 0; i < 40; i++) {
+			Wolf.pool.free(Wolf.pool.obtain());
+		}
+		for (int i = 0; i < 3; i++) {
+			GhostItem.pool.free(GhostItem.pool.obtain());
+		}
+
+		
 		this.cam=cam;
-		this.ninja = new Ninja(0,0,0,1,0,0,100,25,10);
+		this.ninja = new Ninja(0,0,0,1,0,0,100,25,10, "Take 001");
+		Ninja.mainNinja = ninja;
 		this.plane = new Plane(new Vector3(0,1.0f,0),0);
 		this.floor = new Floor(cam, 0, 1400, 200);
 		this.walls = new Walls(-floor.height/2,floor.height/2,ninja);
 		
 		float hashGridBlockSize = (ninja.radius+Wolf.STANDARD_RADIUS);
-		Obstacle.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, 400, floor.height, 4, -floor.height/2);
+		HashedUnit.spatialHashGrid = new WrappableSpatialHashGrid(hashGridBlockSize, hashGridBlockSize, 400, floor.height, 4, -floor.height/2);
 		Unit.unitsInRange = new Array<Unit>(false, 100);	
 		Unit.units = new Array<Unit>(false, 100);
 		this.colManager = new CollisionManager(ninja);
 		this.chunkManager = new ChunkManager(ninja, this, 400, colManager);	
-		this.upRManager = new UpdateRangeManager(20, ninja);
+		this.upRManager = new UpdateRangeManager(26, ninja);
 		this.obsUpdater = new ObstacleUpdater(colManager, upRManager, walls);	
 	}
 	
@@ -67,11 +80,19 @@ public class Simulation extends InputAdapter{
 		walls.update(delta);
 		chunkManager.update();
 		if(colManager.checkCollisions()){
+			cleanUp();
 			return false;
 		}
 		return true;
 	}
 	
+	private void cleanUp() {
+		Unit.units = null;
+		Unit.unitsInRange = null;
+		HashedUnit.spatialHashGrid = null;
+		Ninja.mainNinja = null;
+	}
+
 	Vector3 intersection = new Vector3();
 	Vector2 center = new Vector2();
 	@Override

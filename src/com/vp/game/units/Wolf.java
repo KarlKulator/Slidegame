@@ -1,5 +1,6 @@
 package com.vp.game.units;
 
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.utils.Pool;
 import com.vp.game.trajectories.TurnFiniteLineTrajectory;
 import com.vp.game.trajectories.Trajectory;
@@ -8,8 +9,9 @@ import com.vp.game.trajectories.Trajectory;
 public class Wolf extends Obstacle {
 	
 	public final static float STANDARD_RADIUS = 10; 
-	public final static float STANDARD_TURNSPEED = 10f;
+	public final static float STANDARD_TURNSPEED = 1f;
 	
+	private static Model model;
 	public final static Pool<Wolf> pool = new Pool<Wolf>(){
 		@Override
 		protected Wolf newObject(){
@@ -20,21 +22,8 @@ public class Wolf extends Obstacle {
 	
 	public Trajectory tra = new TurnFiniteLineTrajectory(this);
 	
-	public Wolf(float positionX, float positionY, float positionZ,
-			float directionX, float directionY, float directionZ, float speed,
-			float radius) {
-		super(positionX, positionY, positionZ, directionX, directionY, directionZ,
-				speed, radius);
-	}
-	
-	public Wolf(float positionX, float positionY, float positionZ,
-			float directionX, float directionY, float directionZ, float speed) {
-		super(positionX, positionY, positionZ, directionX, directionY, directionZ,
-				speed, STANDARD_RADIUS);
-	}
-	
 	public Wolf() {
-		super(STANDARD_RADIUS);
+		super(STANDARD_RADIUS, "Take 001");
 		this.turnSpeed = STANDARD_TURNSPEED;
 	}
 
@@ -45,12 +34,17 @@ public class Wolf extends Obstacle {
 
 	@Override
 	public void free() {
-		spatialHashGrid.remove(this);
-		units.removeIndex(this.idInUnits);
-		if(this.idInUnits < units.size){
-			units.get(idInUnits).idInUnits = this.idInUnits;
-		}
+		super.free();
 		Wolf.pool.free(this);
+	}
+	
+	public static void setModel(Model setModel) {
+		model = setModel;		
+	}
+
+	@Override
+	public Model getModel() {
+		return model;
 	}
 
 }

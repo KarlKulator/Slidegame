@@ -1,7 +1,8 @@
 package com.vp.game.updaterangemanaging;
 
 import com.badlogic.gdx.utils.Array;
-import com.vp.game.units.Obstacle;
+import com.vp.game.units.HashedUnit;
+import com.vp.game.units.HashedUnit;
 import com.vp.game.units.Unit;
 
 
@@ -34,33 +35,33 @@ public class UpdateRangeManager{
 		super();
 		this.unit = unit;
 		int[] IDs = new int[3];
-		Obstacle.spatialHashGrid.getIDOfPosition(IDs, unit.position.x, unit.position.y);
+		HashedUnit.spatialHashGrid.getIDOfPosition(IDs, unit.position.x, unit.position.y);
 		middleGlobalChunkID = IDs[0];
 		middleXPositionID = IDs[1];
 		middleYPositionID = IDs[2];
 		
-		maxXRightGlobalChunkID = middleGlobalChunkID + (middleXPositionID + (rangeSizeInCells+1)/2)/Obstacle.spatialHashGrid.chunkXDim;
-		maxXRightXPositionID = (middleXPositionID + (rangeSizeInCells+1)/2)%Obstacle.spatialHashGrid.chunkXDim;
+		maxXRightGlobalChunkID = middleGlobalChunkID + (middleXPositionID + (rangeSizeInCells+1)/2)/HashedUnit.spatialHashGrid.chunkXDim;
+		maxXRightXPositionID = (middleXPositionID + (rangeSizeInCells+1)/2)%HashedUnit.spatialHashGrid.chunkXDim;
 		
 		if(middleXPositionID - rangeSizeInCells/2 >= 0){
 			maxXLeftGlobalChunkID = middleGlobalChunkID;
 			maxXLeftXPositionID = (middleXPositionID  - rangeSizeInCells/2);
 		}else{
-			maxXLeftGlobalChunkID = middleGlobalChunkID + (middleXPositionID - rangeSizeInCells/2)/Obstacle.spatialHashGrid.chunkXDim - 1;
-			maxXLeftXPositionID = ((middleXPositionID  - rangeSizeInCells/2)%Obstacle.spatialHashGrid.chunkXDim+Obstacle.spatialHashGrid.chunkXDim)%Obstacle.spatialHashGrid.chunkXDim;
+			maxXLeftGlobalChunkID = middleGlobalChunkID + (middleXPositionID - rangeSizeInCells/2)/HashedUnit.spatialHashGrid.chunkXDim - 1;
+			maxXLeftXPositionID = ((middleXPositionID  - rangeSizeInCells/2)%HashedUnit.spatialHashGrid.chunkXDim+HashedUnit.spatialHashGrid.chunkXDim)%HashedUnit.spatialHashGrid.chunkXDim;
 		}		
 		
 		
-		this.blockSize = Obstacle.spatialHashGrid.xDimBlockSize;
-		this.maxXLeftPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
-		if(middleXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
-			this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
+		this.blockSize = HashedUnit.spatialHashGrid.xDimBlockSize;
+		this.maxXLeftPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
+		if(middleXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
+			this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
 		}else{
-			this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
+			this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
 		}
 		
-		this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
-		this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
+		this.updateRangeXStart = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
+		this.updateRangeXEnd = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
 		this.rangeSizeInCells = rangeSizeInCells;
 		
 		//Add units in range
@@ -76,8 +77,8 @@ public class UpdateRangeManager{
 //TODO safe range manager
 	public void update() {
 		if(unit.position.x>=maxXRightPosition){
-			Array<Obstacle>[] newYColumn;
-			newYColumn = Obstacle.spatialHashGrid.getYColumn(maxXRightGlobalChunkID, maxXRightXPositionID);
+			Array<HashedUnit>[] newYColumn;
+			newYColumn = HashedUnit.spatialHashGrid.getYColumn(maxXRightGlobalChunkID, maxXRightXPositionID);
 			if(newYColumn != null){
 				for(int i = 0; i < newYColumn.length; i++){
 					for(int j = 0; j < newYColumn[i].size; j++){
@@ -94,66 +95,66 @@ public class UpdateRangeManager{
 					}					
 				}
 			}
-			if(middleXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
+			if(middleXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
 				middleGlobalChunkID++;
 				middleXPositionID = 0;
 			}else{
 				middleXPositionID++;
 			}
 			
-			if(maxXLeftXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
+			if(maxXLeftXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
 				maxXLeftGlobalChunkID++;
 				maxXLeftXPositionID = 0;
 			}else{
 				maxXLeftXPositionID++;
 			}
 			
-			if(maxXRightXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
+			if(maxXRightXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
 				maxXRightGlobalChunkID++;
 				maxXRightXPositionID = 0;
 			}else{
 				maxXRightXPositionID++;
 			}
 			
-			this.maxXLeftPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
-			if(middleXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
-				this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
+			this.maxXLeftPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
+			if(middleXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
+				this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
 			}else{
-				this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
+				this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
 			}
 			
-			this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
-			this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
+			this.updateRangeXStart = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
+			this.updateRangeXEnd = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);
 		}else if(unit.position.x < maxXLeftPosition){
 			if(middleXPositionID == 0){
 				middleGlobalChunkID--;
-				middleXPositionID = Obstacle.spatialHashGrid.maxXInChunk;
+				middleXPositionID = HashedUnit.spatialHashGrid.maxXInChunk;
 			}else{
 				middleXPositionID--;
 			}
 			
 			if(maxXLeftXPositionID == 0){
 				maxXLeftGlobalChunkID--;
-				maxXLeftXPositionID = Obstacle.spatialHashGrid.maxXInChunk;
+				maxXLeftXPositionID = HashedUnit.spatialHashGrid.maxXInChunk;
 			}else{
 				maxXLeftXPositionID--;
 			}
 			
 			if(maxXRightXPositionID == 0){
 				maxXRightGlobalChunkID--;
-				maxXRightXPositionID = Obstacle.spatialHashGrid.maxXInChunk;
+				maxXRightXPositionID = HashedUnit.spatialHashGrid.maxXInChunk;
 			}else{
 				maxXRightXPositionID--;
 			}
-			this.maxXLeftPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
-			if(middleXPositionID == Obstacle.spatialHashGrid.maxXInChunk){
-				this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
+			this.maxXLeftPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID);
+			if(middleXPositionID == HashedUnit.spatialHashGrid.maxXInChunk){
+				this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID+1, 0);
 			}else{
-				this.maxXRightPosition = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
+				this.maxXRightPosition = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(middleGlobalChunkID, middleXPositionID+1);
 			}
 			
-			Array<Obstacle>[] newYColumn;
-			newYColumn = Obstacle.spatialHashGrid.getYColumn(maxXLeftGlobalChunkID, maxXLeftXPositionID);
+			Array<HashedUnit>[] newYColumn;
+			newYColumn = HashedUnit.spatialHashGrid.getYColumn(maxXLeftGlobalChunkID, maxXLeftXPositionID);
 			if(newYColumn != null){
 				for(int i = 0; i < newYColumn.length; i++){
 					for(int j = 0; j < newYColumn[i].size; j++){
@@ -168,8 +169,8 @@ public class UpdateRangeManager{
 				}
 			}
 			
-			this.updateRangeXStart = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
-			this.updateRangeXEnd = Obstacle.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);			
+			this.updateRangeXStart = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXLeftGlobalChunkID, maxXLeftXPositionID);
+			this.updateRangeXEnd = HashedUnit.spatialHashGrid.getXPositionOfCellWithGlobalID(maxXRightGlobalChunkID, maxXRightXPositionID);			
 		}
 	}
 	
@@ -177,7 +178,6 @@ public class UpdateRangeManager{
 		Unit.unitsInRange.removeIndex(unit.idInUnitsInRange);
 		if(unit.idInUnitsInRange < Unit.unitsInRange.size){
 			Unit.unitsInRange.get(unit.idInUnitsInRange).idInUnitsInRange = unit.idInUnitsInRange;
-		}
-		
+		}		
 	}
 }

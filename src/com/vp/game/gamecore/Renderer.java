@@ -23,6 +23,9 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.vp.game.SlideGame;
+import com.vp.game.units.GhostItem;
+import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
 import com.vp.game.units.Wolf;
@@ -41,13 +44,10 @@ public class Renderer {
 	private Model planeModel;
 	final private ModelInstance[] floorTiles = new ModelInstance[3];
 	final private Model ninjaModel;
-	final private ModelInstance ninjaModelInstance;
 	final private Model beastModel;
-	final private ModelInstance beastModelInstance;	
+	final private Model ghostItem;
 
 	final private Environment environment;
-	final private AnimationController animController;
-	final private AnimationController animController2;
 	private Simulation sim;
 
 	public Renderer() {
@@ -63,13 +63,14 @@ public class Renderer {
 				0.4f, 0.4f, 1f));
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f,
 				-0.8f, -0.2f));
-
+		//System.out.println("starting Modelload");
 		assets = new AssetManager();
 		assets.load("icetexture.jpg", Texture.class);
 		assets.load("HeroDemonHunterfullbaked.g3dj", Model.class);
-		assets.load("Wolf7.g3dj", Model.class);
+		assets.load("dummy1.g3db", Model.class);
+		//assets.load("Wolf7.g3dj", Model.class);
 		assets.finishLoading();
-
+		//System.out.println("finished Modelload");
 		modelBatch = new ModelBatch();
 
 		modelBuilder = new ModelBuilder();
@@ -78,11 +79,7 @@ public class Renderer {
 		ninjaModel.materials.get(0).set(
 				IntAttribute.createCullFace(GL20.GL_NONE));
 		ninjaModel.nodes.get(0).scale.set(0.15f, 0.15f, 0.15f);
-		ninjaModelInstance = new ModelInstance(ninjaModel);
-		animController = new AnimationController(ninjaModelInstance);
-		// Pick the current animation by name
-		animController.setAnimation("Take 001", -1);
-		
+		Ninja.setModel(ninjaModel);
 		
 		beastModel = assets.get("HeroDemonHunterfullbaked.g3dj", Model.class);
 		for(int i= 0; i<4; i++){
@@ -92,14 +89,11 @@ public class Renderer {
 //			beastModel.nodes.get(i).scale.set(35f, 35f, 35f);
 //			beastModel.nodes.get(i).translation.set(0,12.5f,0);
 		}
-
-		beastModelInstance = new ModelInstance(beastModel);
-		animController2 = new AnimationController(beastModelInstance);
+		
 		Wolf.setModel(beastModel);
-		//initialize pool
-		for (int i = 0; i < 40; i++) {
-			Wolf.pool.free(new Wolf());
-		}
+		ghostItem = assets.get("dummy1.g3db", Model.class);
+		GhostItem.setModel(ghostItem);
+		//System.out.println("Models loaded");
 		// Pick the current animation by name
 		//animController2.setAnimation("A|Wolf_wartepose", -1);
 	}
@@ -124,19 +118,21 @@ public class Renderer {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-		// Update animations
-		animController.update(delta);
-		animController2.update(delta);
+		// Update ninja animations
+		sim.ninja.animC.update(delta);
+
 
 		sim.cam.update();
 		// Update Models
 		double angle = Math.atan2(sim.ninja.direction.x, sim.ninja.direction.y);
-		ninjaModelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
+		sim.ninja.modelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
 				.setTranslation(sim.ninja.position.x, sim.ninja.positionY, sim.ninja.position.y);
 		//long startTime = System.nanoTime();
-		for(int i = 0; i < Unit.units.size; i++){
-			Unit unit = Unit.units.get(i);
-			unit.animC.update(delta);
+		for(int i = 0; i < Unit.unitsInRange.size; i++){
+			Unit unit = Unit.unitsInRange.get(i);
+			if(unit.animC!=null){
+				unit.animC.update(delta);
+			}			
 			angle = Math.atan2(unit.direction.x, unit.direction.y);
 			unit.modelInstance.transform.idt().rotateRad(0, 1, 0, (float) angle)
 				.setTranslation(unit.position.x, unit.positionY, unit.position.y);
@@ -155,10 +151,10 @@ public class Renderer {
 		modelBatch.render(floorTiles[0], environment);
 		modelBatch.render(floorTiles[1], environment);
 		modelBatch.render(floorTiles[2], environment);
-		modelBatch.render(ninjaModelInstance, environment);
+		modelBatch.render(sim.ninja.modelInstance, environment);
 		//startTime = System.nanoTime();
-		for(int i = 0; i < Unit.units.size; i++){
-			Unit unit = Unit.units.get(i);
+		for(int i = 0; i < Unit.unitsInRange.size; i++){
+			Unit unit = Unit.unitsInRange.get(i);
 			modelBatch.render(unit.modelInstance, environment);
 		}
 		//System.out.println("render render obs: " + (System.nanoTime() - startTime)/1000);
@@ -168,6 +164,7 @@ public class Renderer {
 		stringBuilder.setLength(0);
 		stringBuilder.append(" FPS: ")
 				.append(Gdx.graphics.getFramesPerSecond()).append(", XPos: " + (int) sim.ninja.position.x).append(", YPos: " + (int) sim.ninja.position.y);
+		stringBuilder.append(", Ghost: "+ !sim.ninja.obsCollideAble + (sim.ninja.obsCollideAble?"":" for " + (int)sim.ninja.activeItems.getItemByID(0).durationLeft) );
 		label.setText(stringBuilder);
 		stage.draw();
 	}

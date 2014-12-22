@@ -5,6 +5,7 @@ import com.vp.game.gamecore.Simulation;
 import com.vp.game.gameelements.Chunk;
 import com.vp.game.tools.WrappableSpatialHashGrid;
 import com.vp.game.tools.WrappingArray;
+import com.vp.game.units.HashedUnit;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
 import com.vp.game.units.Wolf;
@@ -35,7 +36,7 @@ public class ChunkManager {
 	public ChunkManager(Unit unit, Simulation sim,
 			 float chunkWidth, CollisionManager colManager) {		
 		this.unit = unit;
-		this.chunks = Obstacle.spatialHashGrid;
+		this.chunks = HashedUnit.spatialHashGrid;
 		this.chunkAmount = chunks.getNumChunk();
 		this.chunkWidth = chunkWidth;
 		this.minUnitPos = unit.position.x;
@@ -56,7 +57,7 @@ public class ChunkManager {
 			chunks.setChunk(i, new Chunk(currentPos, chunkWidth));
 			currentPos -= chunkWidth;
 		}	
-		Obstacle.spatialHashGrid.setLeftXPosition(chunks.getFirstChunk().position);
+		HashedUnit.spatialHashGrid.setLeftXPosition(chunks.getFirstChunk().position);
 		initChunks();
 	}
 	

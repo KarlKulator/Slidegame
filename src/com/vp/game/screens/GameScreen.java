@@ -20,17 +20,18 @@ public class GameScreen implements Screen {
 		
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(),
 				Gdx.graphics.getHeight());
-		cam.position.set(0, 600, 70);
+		cam.position.set(0, 150, 70);
 		cam.lookAt(0, 0, 20);
 		cam.near = 1f;
 		cam.far = 1000f;
 		cam.update();
-		
+	//	System.out.println("Renderer");
 		rend = new Renderer();
+	//	System.out.println("Simulation");
 		sim = new Simulation(cam);
 		rend.setSim(sim);
 		Gdx.input.setInputProcessor(sim);	
-
+	//	System.out.println("ready");
 	}
 	@Override
 	public void render(float delta) {
@@ -38,6 +39,7 @@ public class GameScreen implements Screen {
 		//	long startTime = System.nanoTime();
 			if(!sim.update(delta)){
 				game.setScreen(new MainMenuScreen(game));
+				return;
 			}
 		//	System.out.println("update: " + (System.nanoTime() - startTime)/1000);
 		//	startTime = System.nanoTime();

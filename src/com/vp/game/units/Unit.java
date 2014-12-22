@@ -23,7 +23,6 @@ public abstract class Unit implements WorldElement {
 	
 	public final ModelInstance modelInstance;
 	public final AnimationController animC;
-	private static Model model;
 	
 	public int idInUnitsInRange;
 	public int idInUnits;
@@ -31,24 +30,35 @@ public abstract class Unit implements WorldElement {
 	public Unit(){
 		position = new Vector2();
 		direction = new Vector2();
-		if(model!=null){
-			modelInstance = new ModelInstance(model);
-			animC = new AnimationController(modelInstance);
-			animC.setAnimation("Take 001", -1);
+		if(getModel()!=null){
+			modelInstance = new ModelInstance(getModel());
 		}else{
 			modelInstance = null;
-			animC = null;
 		}
+		animC = null;
 	}
 	
 	public Unit(float radius){
 		this.radius = radius;
 		position = new Vector2();
 		direction = new Vector2();
-		if(model!=null){
-			modelInstance = new ModelInstance(model);
+		if(getModel()!=null){
+			modelInstance = new ModelInstance(getModel());
+		}else{
+			modelInstance = null;
+		}
+		animC = null;
+	}
+	
+	public Unit(float radius, String animation){
+		this.radius = radius;
+		position = new Vector2();
+		direction = new Vector2();
+		if(getModel()!=null){
+			this.animation = new String(animation);
+			modelInstance = new ModelInstance(getModel());
 			animC = new AnimationController(modelInstance);
-			animC.setAnimation("Take 001", -1);
+			animC.setAnimation(animation, -1);
 		}else{
 			modelInstance = null;
 			animC = null;
@@ -61,32 +71,32 @@ public abstract class Unit implements WorldElement {
 		this.direction = new Vector2(directionX, directionZ);
 		this.speed = speed;
 		this.radius= radius;
-		if(model!=null){
-			modelInstance = new ModelInstance(model);
-			animC = new AnimationController(modelInstance);
-			animC.setAnimation("Take 001", -1);
+		if(getModel()!=null){
+			modelInstance = new ModelInstance(getModel());
 		}else{
 			modelInstance = null;
-			animC = null;
 		}
+		animC = null;
 	}
 	
 	public Unit(float positionX, float positionY, float positionZ, float directionX, float directionZ, float speed, float radius, String animation){
 		this.position = new Vector2(positionX, positionZ);
 		this.positionY = positionY;
-		this.direction = new Vector2(positionX, positionZ);
+		this.direction = new Vector2(directionX, directionZ);
 		this.speed = speed;
 		this.radius= radius;
-		animation = new String(animation);
-		if(model!=null){
-			modelInstance = new ModelInstance(model);
+		if(getModel()!=null){
+			this.animation = new String(animation);
+			modelInstance = new ModelInstance(getModel());
 			animC = new AnimationController(modelInstance);
+			animC.setAnimation(this.animation, -1);
 		}else{
 			modelInstance = null;
 			animC = null;
 		}
 	}
 	
+
 	public void setAttributes(float positionX, float positionY, float positionZ, float directionX, float directionZ, float speed, String animation){
 		this.position.x = positionX;
 		this.position.y = positionZ;
@@ -94,7 +104,8 @@ public abstract class Unit implements WorldElement {
 		this.direction.x = directionX;
 		this.direction.y = directionZ;
 		this.speed = speed;
-		animation = new String(animation);
+		this.animation = new String(animation);
+		animC.setAnimation(animation, -1);
 	}
 	
 	public void setAttributes(float positionX, float positionY, float positionZ, float directionX, float directionZ, float speed){
@@ -123,13 +134,18 @@ public abstract class Unit implements WorldElement {
 		float minDist = (radius+otherUnit.radius);
 		return ((minDist * minDist) > position.dst2(otherUnit.position));
 	}
-	
-	public static void setModel(Model setModel){
-		model = setModel;
-	}	
+
+	public abstract Model getModel();
 	
 	@Override
 	public String toString(){
 		return this.getClass().getName() + " : X: " + position.x + ", Y: "+ position.y;
+	}
+
+	public void free() {
+		units.removeIndex(this.idInUnits);
+		if(this.idInUnits < units.size){
+			units.get(idInUnits).idInUnits = this.idInUnits;
+		}
 	}
 }

@@ -2,13 +2,14 @@ package com.vp.game.tools;
 
 import com.badlogic.gdx.utils.Array;
 import com.vp.game.gameelements.Chunk;
+import com.vp.game.units.HashedUnit;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
 import com.vp.game.worldelements.WorldElement;
 
 public class WrappableSpatialHashGrid {
 	//first dimension are the chunks
-	private final Array<Obstacle>[][][] grid;
+	private final Array<HashedUnit>[][][] grid;
 	//The array which contains chunks which then contain obstacles
 	private final Array<Chunk> chunkArray;
 	
@@ -48,11 +49,11 @@ public class WrappableSpatialHashGrid {
 		this.chunkYDim = (int)Math.ceil(yChunkSize/yDimBlockSize);
 		assert(chunkXDim>=2);
 		assert(chunkYDim>=2);
-		grid = (Array<Obstacle>[][][]) new Array[numChunks][chunkXDim][chunkYDim];
+		grid = (Array<HashedUnit>[][][]) new Array[numChunks][chunkXDim][chunkYDim];
 		for (int i = 0; i < grid.length; i++) {
 			for (int j = 0; j < grid[i].length; j++) {					
 				for (int k = 0; k < grid[i][j].length; k++) {
-					grid[i][j][k] = new Array<Obstacle>(false,3);
+					grid[i][j][k] = new Array<HashedUnit>(false,3);
 				}
 			}
 		}
@@ -116,23 +117,23 @@ public class WrappableSpatialHashGrid {
  		IDs[2] = yPosID;
 	}
 	
-	public boolean put(Obstacle obs, float positionX, float positionY){
+	public boolean put(HashedUnit hashedUnit, float positionX, float positionY){
 		float xPosToLeftSide = positionX - leftXPosition;
 		int chunkID = (int) (xPosToLeftSide/xChunkSize);
 		int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 		int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
-		return put(obs, chunkID, xPosID, yPosID);
+		return put(hashedUnit, chunkID, xPosID, yPosID);
 	}
 	
-	public boolean put(Obstacle obs, int chunkID, int xPosID, int yPosID){
+	public boolean put(HashedUnit hashedUnit, int chunkID, int xPosID, int yPosID){
 		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		try{
-			chunkArray.get(relativeChunkID).add(obs);
-			grid[relativeChunkID][xPosID][yPosID].add(obs);
-			obs.globalChunkID = chunkID + globalLeftChunkID;
-			obs.xPositionID = xPosID;
-			obs.yPositionID = yPosID;
-			Array<Obstacle> a = grid[relativeChunkID][xPosID][yPosID];
+			chunkArray.get(relativeChunkID).add(hashedUnit);
+			grid[relativeChunkID][xPosID][yPosID].add(hashedUnit);
+			hashedUnit.globalChunkID = chunkID + globalLeftChunkID;
+			hashedUnit.xPositionID = xPosID;
+			hashedUnit.yPositionID = yPosID;
+			Array<HashedUnit> a = grid[relativeChunkID][xPosID][yPosID];
 			if(a.size>=3){
 				System.out.println("duplicate in grid");
 			}
@@ -143,27 +144,27 @@ public class WrappableSpatialHashGrid {
 		return true;
 	}
 	
-	public boolean move(Obstacle obs, float positionX, float positionY){
+	public boolean move(HashedUnit hashedUnit, float positionX, float positionY){
 			float xPosToLeftSide = positionX - leftXPosition;
 			int chunkID = (int) (xPosToLeftSide/xChunkSize);
 			int xPosID = (int) ((xPosToLeftSide -  (chunkID * xChunkSize))/xBlockSize);
 			int yPosID = (int) ((positionY - topYPosition)/yBlockSize);
-			int globalChunkID = obs.globalChunkID; 
-			int xPositionID = obs.xPositionID; 
-			int yPositionID = obs.yPositionID;
+			int globalChunkID = hashedUnit.globalChunkID; 
+			int xPositionID = hashedUnit.xPositionID; 
+			int yPositionID = hashedUnit.yPositionID;
 			
 			if(globalChunkID-globalLeftChunkID!=chunkID){
-				remove(obs);
-				return put(obs, chunkID, xPosID, yPosID);
+				remove(hashedUnit);
+				return put(hashedUnit, chunkID, xPosID, yPosID);
 			}else if (xPosID!=xPositionID||yPosID!=yPositionID){
-				grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID].removeValue(obs, true);	
-				int relativeChunkID = (chunkID+leftIndex)%numChunks;
-				try{					
-					grid[relativeChunkID][xPosID][yPosID].add(obs);
-					obs.globalChunkID = chunkID + globalLeftChunkID;
-					obs.xPositionID = xPosID;
-					obs.yPositionID = yPosID;
-					Array<Obstacle> a = grid[(chunkID+leftIndex)%numChunks][xPosID][yPosID];
+				try{
+					grid[((globalChunkID-globalLeftChunkID)+leftIndex)%numChunks][xPositionID][yPositionID].removeValue(hashedUnit, true);	
+					int relativeChunkID = (chunkID+leftIndex)%numChunks;									
+					grid[relativeChunkID][xPosID][yPosID].add(hashedUnit);
+					hashedUnit.globalChunkID = chunkID + globalLeftChunkID;
+					hashedUnit.xPositionID = xPosID;
+					hashedUnit.yPositionID = yPosID;
+					Array<HashedUnit> a = grid[(chunkID+leftIndex)%numChunks][xPosID][yPosID];
 					if(a.size>=3){
 						System.out.println("duplicate in grid");
 					}
@@ -175,18 +176,18 @@ public class WrappableSpatialHashGrid {
 			return true;
 	}
 	
-	public boolean remove(Obstacle obs){
-		int relativeChunkID = ((obs.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks;
+	public boolean remove(HashedUnit hashedUnit){
+		int relativeChunkID = ((hashedUnit.globalChunkID-globalLeftChunkID)+leftIndex)%numChunks;
 		try{
-			grid[relativeChunkID][obs.xPositionID][obs.yPositionID].removeValue(obs, true);
-			chunkArray.get(relativeChunkID).removeObs(obs);
+			grid[relativeChunkID][hashedUnit.xPositionID][hashedUnit.yPositionID].removeValue(hashedUnit, true);
+			chunkArray.get(relativeChunkID).removeHashedUnit(hashedUnit);
 			return true;
 		}catch(ArrayIndexOutOfBoundsException e){
 			return false;
 		}
 	}
 	
-	public void getNeighboursAndMiddle(Array<Obstacle>[] neighbours, float positionX, float positionY){
+	public void getNeighboursAndMiddle(Array<HashedUnit>[] neighbours, float positionX, float positionY){
 		float xPosToLeftSide = positionX - leftXPosition;
 		if(xPosToLeftSide<0){
 			System.out.println("<0");
@@ -209,9 +210,9 @@ public class WrappableSpatialHashGrid {
 	}
 	
 	//empty array
-	Array<Obstacle> dummy = new Array<Obstacle>();
+	Array<HashedUnit> dummy = new Array<HashedUnit>();
 	
-	public void getNeighbours(Array<Obstacle>[] neighbours, int chunkID, int xPositionID, int yPositionID){
+	public void getNeighbours(Array<HashedUnit>[] neighbours, int chunkID, int xPositionID, int yPositionID){
 		
 		int relativeChunkID = (chunkID+leftIndex)%numChunks;
 		if(xPositionID == 0){
@@ -342,7 +343,7 @@ public class WrappableSpatialHashGrid {
 		}		
 	}
 	
-	public Array<Obstacle> get(int chunkID, int xPositionID, int yPositionID){
+	public Array<HashedUnit> get(int chunkID, int xPositionID, int yPositionID){
 		try{
 			return grid[(chunkID+leftIndex)%numChunks][xPositionID][yPositionID];
 		}catch(ArrayIndexOutOfBoundsException e){
@@ -350,7 +351,7 @@ public class WrappableSpatialHashGrid {
 		}
 	}
 	
-	public Array<Obstacle>[] getYColumn(int globalChunkID, int xPositionID){
+	public Array<HashedUnit>[] getYColumn(int globalChunkID, int xPositionID){
 		try{
 			return grid[(globalChunkID- globalLeftChunkID +leftIndex)%numChunks][xPositionID];
 		}catch(ArrayIndexOutOfBoundsException e){

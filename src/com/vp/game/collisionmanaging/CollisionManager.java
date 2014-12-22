@@ -1,8 +1,8 @@
 package com.vp.game.collisionmanaging;
 
 import com.badlogic.gdx.utils.Array;
-import com.vp.game.gameelements.Chunk;
-import com.vp.game.tools.WrappingArray;
+import com.vp.game.units.HashedUnit;
+import com.vp.game.units.Item;
 import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
@@ -16,14 +16,21 @@ public class CollisionManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	Array<Obstacle>[] neighbours = (Array<Obstacle>[]) new Array[9];
+	Array<HashedUnit>[] neighbours = (Array<HashedUnit>[]) new Array[9];
 	
 	public boolean checkCollisions(){
-		Obstacle.spatialHashGrid.getNeighboursAndMiddle(neighbours, ninja.position.x,  ninja.position.y);
+		HashedUnit.spatialHashGrid.getNeighboursAndMiddle(neighbours, ninja.position.x,  ninja.position.y);
 		for(int i = 0; i < 9; i++){
 			for (int j = 0; j < neighbours[i].size; j++) {
-				if(ninja.collidesWith(neighbours[i].get(j))){
-					return true;
+				HashedUnit u = neighbours[i].get(j);
+				if(ninja.collidesWith(u)){
+					if(u instanceof Obstacle){
+						if(ninja.obsCollideAble){
+							return true;
+						}
+					}else if (u instanceof Item){
+						((Item)u).onCollect();
+					}					
 				}
 			}
 		}
@@ -31,12 +38,14 @@ public class CollisionManager {
 	}
 	
 	public boolean checkCollisions(Unit unit){
-		Obstacle.spatialHashGrid.getNeighboursAndMiddle(neighbours, unit.position.x,  unit.position.y);
+		HashedUnit.spatialHashGrid.getNeighboursAndMiddle(neighbours, unit.position.x,  unit.position.y);
 		for(int i = 0; i < 9; i++){
 			for (int j = 0; j < neighbours[i].size; j++) {
 				Unit n = neighbours[i].get(j);
 				if(n != unit && unit.collidesWith(n)){
-					return true;
+					if(n instanceof Obstacle){
+						return true;
+					}					
 				}
 			}
 		}

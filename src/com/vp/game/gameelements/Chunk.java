@@ -5,11 +5,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.badlogic.gdx.utils.Array;
+import com.vp.game.units.HashedUnit;
 import com.vp.game.units.Obstacle;
 
 public class Chunk{
 	
-	public final Array<Obstacle> obstacles;
+	public final Array<HashedUnit> hashedUnits;
 	public float position;
 	public float width;
 	
@@ -19,20 +20,20 @@ public class Chunk{
 	}
 	
 	public Chunk(float width) {
-		this.obstacles = new Array<Obstacle>(false, 40);
+		this.hashedUnits = new Array<HashedUnit>(false, 40);
 		this.width = width;
 	}
 	
-	public void removeObs(Obstacle obs){
-		int id = obs.chunkArrayID;
-		obstacles.removeIndex(id);
-		if( id < obstacles.size){
-			obstacles.get(id).chunkArrayID = id;
+	public void removeHashedUnit(HashedUnit hashedUnit){
+		int id = hashedUnit.chunkArrayID;
+		hashedUnits.removeIndex(id);
+		if( id < hashedUnits.size){
+			hashedUnits.get(id).chunkArrayID = id;
 		}
 	}
 
-	public void add(Obstacle obs) {
-		obs.chunkArrayID = obstacles.size;
-		obstacles.add(obs);		
+	public void add(HashedUnit hashedUnit) {
+		hashedUnit.chunkArrayID = hashedUnits.size;
+		hashedUnits.add(hashedUnit);		
 	}
 }

@@ -28,29 +28,34 @@ public class ObstacleUpdater implements WorldElement{
 	@Override
 	public void update(float delta) {
 		for (int i = 0; i < Unit.unitsInRange.size; i++) {
-			final Wolf wolf = (Wolf) Unit.unitsInRange.get(i);
-			
-			//Set new Trajectory if finished
-			if(wolf.tra.finished){
-				float turnAngle = (float)((Math.random() * 2) * Math.PI);
-				((TurnFiniteLineTrajectory) wolf.tra).setTrajectory((float)Math.random()*100, turnAngle);
+			final Unit unit = Unit.unitsInRange.get(i);
+			if(unit instanceof Obstacle){
+				final Wolf wolf = (Wolf) unit;
+				
+				//Set new Trajectory if finished
+				if(wolf.tra.finished){
+					float turnAngle = (float)((Math.random() * 2) * Math.PI);
+					((TurnFiniteLineTrajectory) wolf.tra).setTrajectory((float)Math.random()*400, turnAngle);
+				}
+				
+				//Save old position then update
+				float posXOld = wolf.position.x;
+				float posYOld = wolf.position.y;
+				wolf.tra.update(delta);
+				
+				//Check collisions
+				if(wolf.position.y < walls.maxTopPosition || wolf.position.y >= walls.maxBottomPosition || colManager.checkCollisions(wolf)){
+					wolf.move(posXOld, posYOld);
+					wolf.tra.finished = true;
+				}
+				
+				//Check if still in update range
+				if(wolf.position.x < upRManager.updateRangeXStart || wolf.position.x >= upRManager.updateRangeXEnd){
+					upRManager.removeFromRange(wolf);
+				}		
+			}else{
+				unit.update(delta);
 			}
-			
-			//Save old position then update
-			float posXOld = wolf.position.x;
-			float posYOld = wolf.position.y;
-			wolf.tra.update(delta);
-			
-			//Check collisions
-			if(wolf.position.y < walls.maxTopPosition || wolf.position.y >= walls.maxBottomPosition || colManager.checkCollisions(wolf)){
-				wolf.move(posXOld, posYOld);
-				wolf.tra.finished = true;
-			}
-			
-			//Check if still in update range
-			if(wolf.position.x < upRManager.updateRangeXStart || wolf.position.x >= upRManager.updateRangeXEnd){
-				upRManager.removeFromRange(wolf);
-			}			
 		}
 	}
 
