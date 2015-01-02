@@ -9,13 +9,15 @@ import com.vp.game.trajectories.Trajectory;
 public class Wolf extends Obstacle {
 	
 	public final static float STANDARD_RADIUS = 10; 
-	public final static float STANDARD_TURNSPEED = 1f;
+	public final static float STANDARD_TURNSPEED = 2f;
 	
+	private static int count;
 	private static Model model;
 	public final static Pool<Wolf> pool = new Pool<Wolf>(){
 		@Override
 		protected Wolf newObject(){
-			System.out.println("new" + pool.getFree());
+			System.out.println("new Wolf "+count+", still free:" + pool.getFree());
+			count++;
 			return new Wolf();
 		}
 	};

@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.vp.game.SlideGame;
+import com.vp.game.units.FlyItem;
 import com.vp.game.units.GhostItem;
 import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
@@ -46,7 +47,8 @@ public class Renderer {
 	final private Model ninjaModel;
 	final private Model beastModel;
 	final private Model ghostItem;
-
+	final private Model flyItem;
+	
 	final private Environment environment;
 	private Simulation sim;
 
@@ -67,7 +69,8 @@ public class Renderer {
 		assets = new AssetManager();
 		assets.load("icetexture.jpg", Texture.class);
 		assets.load("HeroDemonHunterfullbaked.g3dj", Model.class);
-		assets.load("dummy1.g3db", Model.class);
+		assets.load("Dummy1/dummy1.g3db", Model.class);
+		assets.load("Dummy2/dummy1.g3db", Model.class);
 		//assets.load("Wolf7.g3dj", Model.class);
 		assets.finishLoading();
 		//System.out.println("finished Modelload");
@@ -91,8 +94,12 @@ public class Renderer {
 		}
 		
 		Wolf.setModel(beastModel);
-		ghostItem = assets.get("dummy1.g3db", Model.class);
+		ghostItem = assets.get("Dummy1/dummy1.g3db", Model.class);
+		ghostItem.nodes.get(0).scale.set(3, 3, 3);
 		GhostItem.setModel(ghostItem);
+		flyItem = assets.get("Dummy2/dummy1.g3db", Model.class);
+		flyItem.nodes.get(0).scale.set(3, 3, 3);
+		FlyItem.setModel(flyItem);
 		//System.out.println("Models loaded");
 		// Pick the current animation by name
 		//animController2.setAnimation("A|Wolf_wartepose", -1);
@@ -165,6 +172,7 @@ public class Renderer {
 		stringBuilder.append(" FPS: ")
 				.append(Gdx.graphics.getFramesPerSecond()).append(", XPos: " + (int) sim.ninja.position.x).append(", YPos: " + (int) sim.ninja.position.y);
 		stringBuilder.append(", Ghost: "+ !sim.ninja.obsCollideAble + (sim.ninja.obsCollideAble?"":" for " + (int)sim.ninja.activeItems.getItemByID(0).durationLeft) );
+		stringBuilder.append(", Fly: "+ !sim.ninja.collideAble + (sim.ninja.collideAble?"":" for " + (int)sim.ninja.activeItems.getItemByID(1).durationLeft) );
 		label.setText(stringBuilder);
 		stage.draw();
 	}

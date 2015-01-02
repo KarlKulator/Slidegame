@@ -47,14 +47,13 @@ public class ObstacleUpdater implements WorldElement{
 				if(wolf.position.y < walls.maxTopPosition || wolf.position.y >= walls.maxBottomPosition || colManager.checkCollisions(wolf)){
 					wolf.move(posXOld, posYOld);
 					wolf.tra.finished = true;
-				}
-				
-				//Check if still in update range
-				if(wolf.position.x < upRManager.updateRangeXStart || wolf.position.x >= upRManager.updateRangeXEnd){
-					upRManager.removeFromRange(wolf);
 				}		
 			}else{
 				unit.update(delta);
+			}
+			//Check if still in update range
+			if(unit.position.x < upRManager.updateRangeXStart || unit.position.x >= upRManager.updateRangeXEnd){
+				upRManager.removeFromRange(unit);
 			}
 		}
 	}

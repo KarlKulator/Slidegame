@@ -3,7 +3,7 @@ package com.vp.game.units;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.utils.Pool;
 
-public class GhostItem extends Item {
+public class FlyItem extends Item {
 	
 	public final static float STANDARD_RADIUS = 6; 
 	public final static float STANDARD_DURATION = 5; 
@@ -11,29 +11,36 @@ public class GhostItem extends Item {
 	public static boolean active;
 	
 	private static Model model;
-	public final static Pool<GhostItem> pool = new Pool<GhostItem>(){
+	public final static Pool<FlyItem> pool = new Pool<FlyItem>(){
 		@Override
-		protected GhostItem newObject(){
-			System.out.println("new GhostItem, still free:" + pool.getFree());
-			return new GhostItem();
+		protected FlyItem newObject(){
+			System.out.println("new FlyItem, still free:" + pool.getFree());
+			return new FlyItem();
 		}
 	};
-
-	public GhostItem() {
+	
+	public FlyItem() {
 		this(STANDARD_RADIUS);
 	}
 
-	public GhostItem(float radius) {
-		super(radius);	
+	public FlyItem(float radius) {
+		super(radius);
 		this.duration = STANDARD_DURATION;
-		itemID=0;
+		itemID=1;
+	}
+
+	public FlyItem(float radius, String animation) {
+		super(radius, animation);
+		this.duration = STANDARD_DURATION;
+		itemID=1;
 	}
 
 	@Override
 	public void update(float delta) {
+		// TODO Auto-generated method stub
 
 	}
-
+	
 	@Override
 	public void free() {
 		super.free();	
@@ -42,10 +49,11 @@ public class GhostItem extends Item {
 	
 	@Override
 	public void onCollect() {
-		if(!GhostItem.active){
-			GhostItem.active = true;
+		if(!FlyItem.active){
+			FlyItem.active = true;
 			Ninja.mainNinja.activeItems.addItem(this);
-			Ninja.mainNinja.obsCollideAble = false;
+			Ninja.mainNinja.collideAble = false;
+			Ninja.mainNinja.positionY = 30;
 			durationLeft = this.duration;
 		}else{
 			Ninja.mainNinja.activeItems.refreshDuration(itemID);
@@ -60,9 +68,10 @@ public class GhostItem extends Item {
 	@Override
 	public void onDurationExpire() {
 		active = false;
-		Ninja.mainNinja.obsCollideAble = true;
+		Ninja.mainNinja.positionY = 0;
+		Ninja.mainNinja.collideAble = true;
 	}
-	
+
 	public static void setModel(Model setModel) {
 		model = setModel;		
 	}
@@ -71,4 +80,5 @@ public class GhostItem extends Item {
 	public Model getModel() {
 		return model;
 	}
+
 }

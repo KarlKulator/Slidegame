@@ -25,11 +25,13 @@ public class CollisionManager {
 				HashedUnit u = neighbours[i].get(j);
 				if(ninja.collidesWith(u)){
 					if(u instanceof Obstacle){
-						if(ninja.obsCollideAble){
+						if(ninja.obsCollideAble && ninja.collideAble){
 							return true;
 						}
 					}else if (u instanceof Item){
-						((Item)u).onCollect();
+						if(ninja.collideAble){
+							((Item)u).onCollect();
+						}					
 					}					
 				}
 			}
