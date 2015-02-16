@@ -2,10 +2,10 @@ package com.vp.game.chunkmanaging;
 
 import com.vp.game.collisionmanaging.CollisionManager;
 import com.vp.game.gameelements.Chunk;
-import com.vp.game.units.FlyItem;
-import com.vp.game.units.GhostItem;
+import com.vp.game.items.FlyItem;
+import com.vp.game.items.GhostItem;
+import com.vp.game.items.Item;
 import com.vp.game.units.HashedUnit;
-import com.vp.game.units.Item;
 import com.vp.game.units.Wolf;
 
 public class ObstacleWorker implements ChunkWorker {
@@ -14,6 +14,8 @@ public class ObstacleWorker implements ChunkWorker {
 	
 	private final float chunkHeight;	
 	private final float chunkWidth;
+	
+	private final DifficultyManager difficultyInfo;
 	
 	public ObstacleWorker(float chunkHeight, float chunkWidth, CollisionManager colManager) {
 		this.chunkHeight = chunkHeight;

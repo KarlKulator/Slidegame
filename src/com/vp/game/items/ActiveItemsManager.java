@@ -1,4 +1,4 @@
-package com.vp.game.units;
+package com.vp.game.items;
 
 import com.badlogic.gdx.utils.Array;
 import com.vp.game.worldelements.WorldElement;
@@ -15,12 +15,25 @@ public class ActiveItemsManager implements WorldElement {
 	public void update(float delta) {
 		for(int i = 0; i < activeItems.size; i++){
 			Item item = activeItems.get(i);
-			item.durationLeft-=delta;
-			if(item.durationLeft <= 0){
-				item.onDurationExpire();
-				activeItems.removeIndex(i);
-				i--;
-			}
+			if(item.inEpilog){
+				if(item.updateDuringEpilog(delta)){
+					item.onDurationExpire();
+					activeItems.removeIndex(i);
+					i--;
+				}
+			}else{
+				item.updateDuringActive(delta);
+				item.durationLeft-=delta;
+				if(item.durationLeft <= 0){
+					if(item.hasEpilog){
+						item.onEpilogTrigger();
+					}else{
+						item.onDurationExpire();
+						activeItems.removeIndex(i);
+						i--;
+					}				
+				}
+			}			
 		}
 	}
 	
@@ -35,6 +48,10 @@ public class ActiveItemsManager implements WorldElement {
 				item.durationLeft = item.duration;
 			}
 		}
+	}
+	
+	public void refreshDuration(Item item){
+		item.durationLeft = item.duration;
 	}
 	
 	public Item getItemByID(int itemID){

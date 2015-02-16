@@ -1,6 +1,7 @@
 package com.vp.game.units;
 
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.vp.game.items.ActiveItemsManager;
 import com.vp.game.trajectories.CirclesegLineTrajectory;
 
 public class Ninja extends Unit {
@@ -24,6 +25,9 @@ public class Ninja extends Unit {
 	public boolean obsCollideAble;
 	//Indicates if the ninja can collide with anything
 	public boolean collideAble;
+	
+	public boolean raising;
+	public float raiseHeight;
 	
 	public final ActiveItemsManager activeItems;
 	

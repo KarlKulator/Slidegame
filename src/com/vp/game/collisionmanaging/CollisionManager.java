@@ -1,8 +1,8 @@
 package com.vp.game.collisionmanaging;
 
 import com.badlogic.gdx.utils.Array;
+import com.vp.game.items.Item;
 import com.vp.game.units.HashedUnit;
-import com.vp.game.units.Item;
 import com.vp.game.units.Ninja;
 import com.vp.game.units.Obstacle;
 import com.vp.game.units.Unit;
@@ -30,7 +30,7 @@ public class CollisionManager {
 						}
 					}else if (u instanceof Item){
 						if(ninja.collideAble){
-							((Item)u).onCollect();
+							((Item)u).onCollect(ninja);
 						}					
 					}					
 				}
